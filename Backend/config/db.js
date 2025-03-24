@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const userDB = mongoose.createConnection(process.env.USER_DB_URI, {
-    serverSelectionTimeoutMS: 30000, // Increase timeout to 30s
-    socketTimeoutMS: 45000, // Increase socket timeout
+    serverSelectionTimeoutMS: 30000, 
+    socketTimeoutMS: 45000, 
 });
 
 const servicemanDB = mongoose.createConnection(process.env.SERVICE_DB_URI, {
