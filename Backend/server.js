@@ -24,9 +24,13 @@ else console.log("Debug: requestDB connection status:", requestDB.readyState);
 
 // Debug: Check Serviceman model import and definition
 console.log("Debug: Serviceman model:", Serviceman);
+const corsOptions = {
+    origin: "http://localhost:5173", // Replace with your frontend's origin
+    credentials: true, // Allow cookies and authorization headers
+  };
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
@@ -43,6 +47,10 @@ app.get("/serviceman/api/protected", protectRoute("serviceman"), (req, res) => {
 
 app.use("/request/api/auth", rauthRoutes);
 app.get("/request/api/protected", protectRoute("client"), (req, res) => {
+    res.json({ message: "Access granted to client protected data" });
+});
+app.use("/review/api/auth", reauthRoutes);
+app.get("/review/api/protected", protectRoute("client"), (req, res) => {
     res.json({ message: "Access granted to client protected data" });
 });
 

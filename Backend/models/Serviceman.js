@@ -23,6 +23,7 @@ const ServicemanSchema = new mongoose.Schema({
     location: { type: String, default: "" },
     price: { type: Number, default: 0, min: 0 }, // Ensure non-negative prices
     rating: { type: Number, default: 0, min: 0, max: 5 }, // Average rating (0-5)
+    noofreviews:{type:Number,default:0},
     experience:{ type: Number, default: 0, min: 0,max:50 },
     reviews: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },

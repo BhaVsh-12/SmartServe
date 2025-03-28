@@ -75,6 +75,7 @@ const Services = () => {
                 <div
                   key={idx}
                   className="group p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-500 hover:scale-105"
+                  onClick={()=>(alert("Login to access this feature"))}
                 >
                   <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-colors duration-300">
                     {service.icon}

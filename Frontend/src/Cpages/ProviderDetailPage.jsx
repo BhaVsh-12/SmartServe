@@ -5,7 +5,7 @@ import { ChevronLeft, MessageSquare, Phone, Calendar, Star, Clock } from "lucide
 import { useAppContext } from "../context/AppContext";
 import StarRating from "../components/CUI/StarRating";
 import Button from "../components/CUI/Button";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 
 const ProviderDetailPage = () => {
   const { providerId } = useParams();
@@ -15,15 +15,19 @@ const ProviderDetailPage = () => {
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [requestStatus, setRequestStatus] = useState(null); // New state for request status
+  const [requestStatus, setRequestStatus] = useState(null);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     const fetchProvider = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:5000/user/api/auth/getServiceman/${providerId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `http://localhost:5000/user/api/auth/getServiceman/${providerId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         console.log("Provider Data:", response.data);
         setProvider(response.data);
@@ -35,7 +39,25 @@ const ProviderDetailPage = () => {
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `http://localhost:5000/user/api/auth/getreviews/${providerId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        console.log("Reviews Data:", response.data);
+        setReviews(response.data);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+      }
+    };
+
     fetchProvider();
+    fetchReviews();
   }, [providerId]);
 
   if (loading) {
@@ -67,7 +89,7 @@ const ProviderDetailPage = () => {
       );
 
       console.log("Request Response:", response.data);
-      setRequestStatus("requested"); // Update request status
+      setRequestStatus("requested");
     } catch (err) {
       console.error("Error creating request:", err);
       setError("Failed to create request.");
@@ -105,7 +127,7 @@ const ProviderDetailPage = () => {
               <div className="flex items-center mb-2">
                 <StarRating rating={provider?.rating || 0} />
                 <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
-                  {provider?.rating?.toFixed(1) || "0.0"} ({provider?.reviews?.length || 0} reviews)
+                  {provider?.rating?.toFixed(1) || "0.0"} ({reviews.length} reviews)
                 </span>
               </div>
               <p className={`mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
@@ -154,42 +176,42 @@ const ProviderDetailPage = () => {
                 Reviews
               </h2>
               <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                {provider?.reviews?.length || 0} reviews
+                {reviews.length} reviews
               </span>
             </div>
 
-            {provider?.reviews?.length > 0 ? (
+            {reviews.length > 0 ? (
               <div className="space-y-6">
-                {provider.reviews.map((review) => (
+                {reviews.map((review) => (
                   <motion.div
-                    key={review.id}
+                    key={review._id}
                     className={`p-4 rounded-lg ${darkMode ? "bg-gray-700" : "bg-gray-50"}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     <div className="flex items-start mb-3">
-                      <img src={review.userAvatar} alt={review.userName} className="w-10 h-10 rounded-full object-cover mr-3" />
+                      <img src={review.clientPhoto} alt={review.clientname} className="w-10 h-10 rounded-full object-cover mr-3" />
                       <div>
                         <h4 className={`font-medium ${darkMode ? "text-white" : "text-gray-800"}`}>
-                          {review.userName}
+                          {review.clientname}
                         </h4>
                         <div className="flex items-center">
                           <StarRating rating={review.rating} size={16} />
-                          <span className={`ml-2 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                            {review.date}
+                          <span className={`ml-2 text-sm ${darkMode? "text-gray-400" : "text-gray-500"}`}>
+                            {new Date(review.updatedAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
                     </div>
                     <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                      {review.comment}
+                      {review.review}
                     </p>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className={`text-center py-8 ${darkMode ? "text-gray-400" :"text-gray-500"}`}>
+              <div className={`text-center py-8 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                 <Star size={40} className="mx-auto mb-3 opacity-30" />
                 <p>No reviews yet</p>
               </div>

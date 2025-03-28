@@ -1,36 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Search, Filter } from 'lucide-react';
-
-const mockReviews = [
-  {
-    id: '1',
-    userId: 'user1',
-    userName: 'Sarah Johnson',
-    userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    rating: 5,
-    comment: 'Excellent service! Fixed my plumbing issue quickly and professionally.',
-    date: '2024-03-15'
-  },
-  {
-    id: '2',
-    userId: 'user2',
-    userName: 'Michael Chen',
-    userAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    rating: 4,
-    comment: 'Very professional and knowledgeable. Would recommend!',
-    date: '2024-03-14'
-  },
-  {
-    id: '3',
-    userId: 'user3',
-    userName: 'Emily Brown',
-    userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    rating: 5,
-    comment: 'Great work on the pipe installation. Very clean and efficient.',
-    date: '2024-03-13'
-  }
-];
+import axios from 'axios';
+import { useAppContext } from '../../context/AppContext';
 
 const StarRating = ({ rating }) => {
   return (
@@ -47,15 +19,44 @@ const StarRating = ({ rating }) => {
 };
 
 export default function Reviews() {
+  const [reviews, setReviews] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAppContext();
 
-  const averageRating = mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length;
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(
+          'http://localhost:5000/review/api/auth/getreview',
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        );
+        setReviews(response.data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        // Handle error (e.g., show a message to the user)
+      }
+    };
 
-  const filteredReviews = mockReviews.filter(review => {
+    if (user) {
+      fetchReviews();
+    }
+  }, [user]);
+
+  // Handle cases where reviews are empty to prevent NaN errors.
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+    : 0; // or any default value you prefer
+
+  const filteredReviews = reviews.filter((review) => {
     const matchesFilter = filter === 'all' || review.rating === parseInt(filter);
-    const matchesSearch = review.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.comment.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      review.clientname?.toLowerCase().includes(searchTerm.toLowerCase()) || // Added optional chaining
+      review.review?.toLowerCase().includes(searchTerm.toLowerCase()); // Added optional chaining
     return matchesFilter && matchesSearch;
   });
 
@@ -71,9 +72,7 @@ export default function Reviews() {
           <div className="mt-2 flex items-center gap-2">
             <StarRating rating={Math.round(averageRating)} />
             <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
-            <span className="text-gray-600 dark:text-gray-400">
-              ({mockReviews.length} reviews)
-            </span>
+            <span className="text-gray-600 dark:text-gray-400">({reviews.length} reviews)</span>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
@@ -108,28 +107,28 @@ export default function Reviews() {
       <div className="grid gap-4">
         {filteredReviews.map((review) => (
           <motion.div
-            key={review.id}
+            key={review._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6"
           >
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <img
-                src={review.userAvatar}
-                alt={review.userName}
+                src={review.clientPhoto}
+                alt={review.clientname}
                 className="w-12 h-12 rounded-full object-cover"
               />
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                   <div>
-                    <h3 className="font-semibold text-lg">{review.userName}</h3>
+                    <h3 className="font-semibold text-lg">{review.clientname}</h3>
                     <StarRating rating={review.rating} />
                   </div>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {review.date}
+                    {new Date(review.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="mt-2 text-gray-700 dark:text-gray-300">{review.comment}</p>
+                <p className="mt-2 text-gray-700 dark:text-gray-300">{review.review}</p>
               </div>
             </div>
           </motion.div>

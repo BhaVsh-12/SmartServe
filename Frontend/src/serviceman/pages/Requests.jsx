@@ -78,6 +78,11 @@ export default function Requests() {
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      await axios.post(
+        'http://localhost:5000/review/api/auth/create',
+        { requestId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setRequests((prevRequests) =>
         prevRequests.map((request) =>
           request._id === requestId
@@ -178,12 +183,13 @@ export default function Requests() {
       <div className="grid gap-4">
         <AnimatePresence>
           {filteredRequests.map((request) => (
-            <motion.div
-              key={request._id}
-              variants={cardVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow"
+              <motion.div
+                key={request._id}
+                variants={cardVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -249,9 +255,10 @@ export default function Requests() {
                   </div>
                 )}
               </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    );
-  }
+            ))
+           });
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}

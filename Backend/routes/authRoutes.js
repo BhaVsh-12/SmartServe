@@ -1,6 +1,8 @@
 const express = require("express");
 const User = require("../models/User");
 const Serviceman = require("../models/Serviceman");
+const Request =require("../models/Request");
+const Review=require("../models/Review");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const protectRoute = require("../middleware/authMiddleware");
@@ -113,8 +115,30 @@ router.get("/getServiceman/:id", protectRoute("client"), async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
+router.get("/getreviews/:id", protectRoute("client"), async (req, res) => {
+    try {
+        const { id: servicemanId } = req.params; // Corrected parameter name to 'id'
 
-// Get User Profile
+        if (!servicemanId) {
+            return res.status(400).json({ message: "Serviceman ID is required" });
+        }
+
+        const reviews = await Review.find({
+            servicemanId: servicemanId,
+            reviewstatus: "completed",
+        });
+        
+        if (!reviews || reviews.length === 0) {
+            return res.status(404).json({ message: "No reviews available" });
+        }
+        
+        res.status(200).json(reviews);
+    } catch (error) {
+        console.error("Error fetching serviceman reviews:", error); // Improved error message
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 router.get("/getProfile", protectRoute("client"), async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select("-password");

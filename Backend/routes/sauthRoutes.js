@@ -146,7 +146,4 @@ router.post("/uploadPhoto", protectRoute("serviceman"), upload.single("profilePh
 });
 
 
-
-
-
 module.exports = router;

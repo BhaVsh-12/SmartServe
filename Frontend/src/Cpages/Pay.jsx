@@ -1,103 +1,57 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ToastContainer, toast } from "react-toastify";
-import { format } from "date-fns";
-import {
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  CreditCard,
-  X,
-  Calendar,
-  User,
-  Lock,
-  Smartphone,
-  ChevronRight,
-} from "lucide-react";
-import "react-toastify/dist/ReactToastify.css";
-import { SiPhonepe } from "react-icons/si";
-import phonepe from "../img/phonepe-icon.png";
-import google from "../img/google-pay-icon.png";
-import paytem from "../img/paytm-icon.png";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import { format } from 'date-fns';
+import { CheckCircle2, Clock, DollarSign, CreditCard, X, Calendar, User, Lock, Smartphone, ChevronRight } from 'lucide-react';
+import 'react-toastify/dist/ReactToastify.css';
 
 const UPI_APPS = [
   {
-    name: "Google Pay",
-    icon: google,
-    upiId: "@googlepay",
+    name: 'Google Pay',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/3/34/Google_Pay_Logo.svg',
+    upiId: '@googlepay'
   },
   {
-    name: "PhonePe",
-    icon: phonepe,
-    upiId: "@phonepe",
+    name: 'PhonePe',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/5/58/PhonePe_logo.svg',
+    upiId: '@phonepe'
   },
   {
-    name: "Paytm",
-    icon: paytem,
-    upiId: "@paytm",
-  },
+    name: 'Paytm',
+    icon: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Paytm_logo.png',
+    upiId: '@paytm'
+  }
 ];
 
-const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
-  const [paymentMethod, setPaymentMethod] = useState("Card");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [name, setName] = useState("");
-  const [upiId, setUpiId] = useState("");
-  const [selectedUpiApp, setSelectedUpiApp] = useState("");
+const PaymentModal = ({ payment, onClose, onSubmit }) => {
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [name, setName] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [selectedUpiApp, setSelectedUpiApp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (paymentMethod === "Card") {
+    if (paymentMethod === 'card') {
       if (!cardNumber || !expiryDate || !cvv || !name) {
-        toast.error("Please fill in all card details");
+        toast.error('Please fill in all card details');
         return;
       }
-    } else if (paymentMethod === "UPI") {
+    } else if (paymentMethod === 'upi') {
       if (!upiId || !selectedUpiApp) {
-        toast.error("Please enter UPI ID and select a payment app");
+        toast.error('Please enter UPI ID and select a payment app');
         return;
       }
     }
 
     setIsSubmitting(true);
-    try {
-      console.log("id:", payment.id);
-      const response = await fetch(
-        `http://localhost:5000/request/api/auth/payment`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            requestId: payment._id,
-            paymentmethod: paymentMethod,
-            cardno: cardNumber.toString(),
-            upiid: upiId,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Payment failed. Please try again."
-        );
-      }
-
-      toast.success("Payment successful!");
-      await onSubmit(payment.id);
-      onClose();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onSubmit(payment.id);
+    setIsSubmitting(false);
+    onClose();
   };
 
   return (
@@ -125,31 +79,29 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
 
         <div className="mb-6">
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h3 className="font-medium text-gray-900">{payment.serviceman}</h3>
-            <p className="text-gray-600">Amount: ${payment.price.toFixed(2)}</p>
-            <p className="text-gray-600">
-              Due: {format(new Date(payment.createdAt), "MMM dd, yyyy")}
-            </p>
+            <h3 className="font-medium text-gray-900">{payment.description}</h3>
+            <p className="text-gray-600">Amount: ${payment.amount.toFixed(2)}</p>
+            <p className="text-gray-600">Due: {format(payment.date, 'MMM dd, yyyy')}</p>
           </div>
 
           <div className="flex space-x-4 mb-6">
             <button
-              onClick={() => setPaymentMethod("Card")}
+              onClick={() => setPaymentMethod('card')}
               className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center space-x-2 ${
-                paymentMethod === "Card"
-                  ? "bg-indigo-50 border-2 border-indigo-500 text-indigo-700"
-                  : "bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100"
+                paymentMethod === 'card'
+                  ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                  : 'bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100'
               }`}
             >
               <CreditCard className="h-5 w-5" />
               <span>Card</span>
             </button>
             <button
-              onClick={() => setPaymentMethod("UPI")}
+              onClick={() => setPaymentMethod('upi')}
               className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center space-x-2 ${
-                paymentMethod === "UPI"
-                  ? "bg-indigo-50 border-2 border-indigo-500 text-indigo-700"
-                  : "bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100"
+                paymentMethod === 'upi'
+                  ? 'bg-indigo-50 border-2 border-indigo-500 text-indigo-700'
+                  : 'bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100'
               }`}
             >
               <Smartphone className="h-5 w-5" />
@@ -159,7 +111,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <AnimatePresence mode="wait">
-              {paymentMethod === "Card" ? (
+              {paymentMethod === 'card' ? (
                 <motion.div
                   key="card-form"
                   initial={{ opacity: 0, x: 20 }}
@@ -176,11 +128,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                       <input
                         type="text"
                         value={cardNumber}
-                        onChange={(e) =>
-                          setCardNumber(
-                            e.target.value.replace(/\D/g, "").slice(0, 16)
-                          )
-                        }
+                        onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
                         placeholder="1234 5678 9012 3456"
                         className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         maxLength={16}
@@ -199,16 +147,12 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           type="text"
                           value={expiryDate}
                           onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-
-                            if (value.length > 2) {
-                              value = `${value.slice(0, 2)}/${value.slice(
-                                2,
-                                4
-                              )}`; // Format as MM/YY
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 2) {
+                              setExpiryDate(value);
+                            } else {
+                              setExpiryDate(`<span class="math-inline">\{value\.slice\(0, 2\)\}/</span>{value.slice(2, 4)}`);
                             }
-
-                            setExpiryDate(value);
                           }}
                           placeholder="MM/YY"
                           className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -226,17 +170,13 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                         <input
                           type="text"
                           value={cvv}
-                          onChange={(e) =>
-                            setCvv(
-                              e.target.value.replace(/\D/g, "").slice(0, 3)
-                            )
-                          }
+                          onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
                           placeholder="123"
                           className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                           maxLength={3}
                         />
                       </div>
-                    </div>
+                      </div>
                   </div>
 
                   <div>
@@ -291,25 +231,17 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           onClick={() => setSelectedUpiApp(app.name)}
                           className={`w-full flex items-center justify-between p-3 rounded-lg border-2 ${
                             selectedUpiApp === app.name
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-gray-200 hover:bg-gray-50"
+                              ? 'border-indigo-500 bg-indigo-50'
+                              : 'border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center space-x-3">
-                            <img
-                              src={app.icon}
-                              alt={app.name}
-                              className="h-8 w-8"
-                            />
-                            <span className="font-medium text-gray-900">
-                              {app.name}
-                            </span>
+                            <img src={app.icon} alt={app.name} className="h-8 w-8" />
+                            <span className="font-medium text-gray-900">{app.name}</span>
                           </div>
                           <ChevronRight
                             className={`h-5 w-5 ${
-                              selectedUpiApp === app.name
-                                ? "text-indigo-500"
-                                : "text-gray-400"
+                              selectedUpiApp === app.name ? 'text-indigo-500' : 'text-gray-400'
                             }`}
                           />
                         </button>
@@ -325,13 +257,11 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
               whileTap={{ scale: 0.98 }}
               disabled={isSubmitting}
               className={`w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+                isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
               }`}
               type="submit"
             >
-              {isSubmitting
-                ? "Processing..."
-                : `Pay $${payment.price.toFixed(2)}`}
+              {isSubmitting ? 'Processing...' : `Pay $${payment.amount.toFixed(2)}`}
             </motion.button>
           </form>
         </div>
@@ -342,69 +272,66 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
 
 function App() {
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [payments, setPayments] = useState([]);
-  const [completedPayments, setCompletedPayments] = useState([]);
-  const [pendingPayments, setPendingPayments] = useState([]);
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
+  const [payments, setPayments] = useState([
+    {
+      id: '1',
+      amount: 299.99,
+      date: new Date(2024, 1, 15),
+      description: 'Premium Subscription',
+      status: 'completed'
+    },
+    {
+      id: '2',
+      amount: 149.50,
+      date: new Date(2024, 1, 20),
+      description: 'Software License',
+      status: 'completed'
+    },
+    {
+      id: '3',
+      amount: 499.99,
+      date: new Date(2024, 2, 1),
+      description: 'Consulting Services',
+      status: 'pending'
+    },
+    {
+      id: '4',
+      amount: 79.99,
+      date: new Date(2024, 2, 5),
+      description: 'Monthly Support',
+      status: 'pending'
     }
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      fetchPayments();
-    }
-  }, [token]);
-
-  const fetchPayments = async () => {
-    try {
-      const pendingResponse = await fetch(
-        "http://localhost:5000/request/api/auth/pendingpayments",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const completedResponse = await fetch(
-        "http://localhost:5000/request/api/auth/completedpayments",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!pendingResponse.ok || !completedResponse.ok) {
-        throw new Error("Failed to fetch payments");
-      }
-
-      const pendingData = await pendingResponse.json();
-      console.log("pendingData", pendingData);
-      const completedData = await completedResponse.json();
-
-      setPendingPayments(pendingData);
-      setCompletedPayments(completedData);
-      setPayments([...pendingData, ...completedData]);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
+  ]);
 
   const handlePayment = async (paymentId) => {
-    fetchPayments();
+    toast.info('Processing payment...', { autoClose: 2000 });
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setPayments((prevPayments) =>
+        prevPayments.map((payment) =>
+          payment.id === paymentId
+            ? { ...payment, status: 'completed', date: new Date() }
+            : payment
+        )
+      );
+
+      toast.success('Payment successful!');
+    } catch (error) {
+      toast.error('Payment failed. Please try again.');
+    }
   };
+
+  const completedPayments = payments.filter((p) => p.status === 'completed');
+  const pendingPayments = payments.filter((p) => p.status === 'pending');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Payment Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Manage your payments and invoices in one place
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Payment Dashboard</h1>
+          <p className="text-gray-600">Manage your payments and invoices in one place</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -416,32 +343,28 @@ function App() {
           >
             <div className="flex items-center mb-6">
               <CheckCircle2 className="h-6 w-6 text-green-500 mr-2" />
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Completed Payments
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900">Completed Payments</h2>
             </div>
 
             <div className="space-y-4">
               <AnimatePresence>
                 {completedPayments.map((payment) => (
                   <motion.div
-                    key={payment._id}
+                    key={payment.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {payment.serviceman}
-                      </p>
+                      <p className="font-medium text-gray-900">{payment.description}</p>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(payment.paymentAt), "MMM dd, yyyy")}
+                        {format(payment.date, 'MMM dd, যশোরে')}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
-                        ${payment.price.toFixed(2)}
+                        ${payment.amount.toFixed(2)}
                       </p>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Paid
@@ -461,34 +384,29 @@ function App() {
           >
             <div className="flex items-center mb-6">
               <Clock className="h-6 w-6 text-yellow-500 mr-2" />
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Pending Payments
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900">Pending Payments</h2>
             </div>
 
             <div className="space-y-4">
               <AnimatePresence>
                 {pendingPayments.map((payment) => (
                   <motion.div
-                    key={payment._id}
+                    key={payment.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {payment.serviceman}
-                      </p>
+                      <p className="font-medium text-gray-900">{payment.description}</p>
                       <p className="text-sm text-gray-500">
-                        Due:{" "}
-                        {format(new Date(payment.createdAt), "MMM dd, yyyy")}
+                        Due: {format(payment.date, 'MMM dd, যশোরে')}
                       </p>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">
-                          ${payment.price.toFixed(2)}
+                          ${payment.amount.toFixed(2)}
                         </p>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           Pending
@@ -529,7 +447,6 @@ function App() {
             payment={selectedPayment}
             onClose={() => setSelectedPayment(null)}
             onSubmit={handlePayment}
-            token={token}
           />
         )}
       </AnimatePresence>

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { 
-  User, 
-  MessageSquare, 
-  FileText, 
-  Star, 
+import {
+  User,
+  MessageSquare,
+  FileText,
+  Star,
   CreditCard,
   Crown,
   Menu,
@@ -14,9 +14,10 @@ import {
   Moon,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
+
 import clsx from "clsx";
 
 const navItems = [
@@ -66,7 +67,7 @@ export default function Layout() {
       {/* Mobile Sidebar Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-primary-500 text-white "
+        className={`lg:hidden fixed top-0 left-0 b-8 z-50 p-2 rounded-lg bg-primary-500  ${theme === "dark" ? "text-white" : "text-black"} shadow-lg hover:bg-primary-600 transition-colors`}
       >
         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -74,7 +75,9 @@ export default function Layout() {
       {/* Desktop Sidebar Toggle Button */}
       <button
         onClick={toggleSidebar}
-        className="hidden lg:flex fixed bottom-4 left-4 z-50 p-2 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-colors"
+        className={`hidden lg:flex fixed bottom-4 left-4 z-50 p-2 rounded-full bg-primary-500 shadow-lg hover:bg-primary-600 transition-colors ${
+          theme === "dark" ? "text-white" : "text-black"
+        }`}
       >
         {isSidebarOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
       </button>
@@ -82,7 +85,10 @@ export default function Layout() {
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -300, opacity: 0 }}
-        animate={{ x: isSidebarOpen ? 0 : -300, opacity: isSidebarOpen ? 1 : 0 }}
+        animate={{
+          x: isSidebarOpen ? 0 : -300,
+          opacity: isSidebarOpen ? 1 : 0,
+        }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className={clsx(
           "fixed top-0 left-0 h-full w-64 p-4 transition-colors duration-300",
@@ -91,8 +97,8 @@ export default function Layout() {
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-xl font-bold">ServicePro</h1>
+        <div className="flex items-center justify-between mb-8 mt-8">
+          <h1 className="text-xl font-bold">SmartServe</h1>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
