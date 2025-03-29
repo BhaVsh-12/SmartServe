@@ -24,10 +24,24 @@ else console.log("Debug: requestDB connection status:", requestDB.readyState);
 
 // Debug: Check Serviceman model import and definition
 console.log("Debug: Serviceman model:", Serviceman);
-const corsOptions = {
-    origin: "http://localhost:5173", // Replace with your frontend's origin
-    credentials: true, // Allow cookies and authorization headers
+const allowedOrigins = [
+    "http://localhost:5173", 
+    "https://smart-serve-o58oe7q53-bhavsh-12s-projects.vercel.app"
+  ];
+  
+  const corsOptions = {
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   };
+  
+  app.use(cors(corsOptions));
+  
 
 // Middleware
 app.use(cors(corsOptions));
