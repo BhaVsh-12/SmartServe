@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, ArrowLeft, Search } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import Api from "../Api/capi";
 
 const StarRating = ({ rating }) => {
   return (
