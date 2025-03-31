@@ -67,7 +67,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
     try {
       console.log("id:", payment.id);
       const response = await fetch(
-        `http://localhost:5000/request/api/auth/payment`,
+        `https://smartserve-z2ms.onrender.com/request/api/auth/payment`,
         {
           method: "PUT",
           headers: {
@@ -363,13 +363,13 @@ function App() {
   const fetchPayments = async () => {
     try {
       const pendingResponse = await fetch(
-        "http://localhost:5000/request/api/auth/pendingpayments",
+        "https://smartserve-z2ms.onrender.com/request/api/auth/pendingpayments",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       const completedResponse = await fetch(
-        "http://localhost:5000/request/api/auth/completedpayments",
+        "https://smartserve-z2ms.onrender.com/request/api/auth/completedpayments",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

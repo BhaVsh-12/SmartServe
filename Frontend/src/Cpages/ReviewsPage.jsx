@@ -17,7 +17,7 @@ const ReviewsPage = () => {
     const fetchPendingReviews = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/review/api/auth/getpendingreview",
+          "https://smartserve-z2ms.onrender.com/review/api/auth/getpendingreview",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -37,7 +37,7 @@ const ReviewsPage = () => {
     const fetchCompletedReviews = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/review/api/auth/completedreview", // Corrected endpoint
+          "https://smartserve-z2ms.onrender.com/review/api/auth/completedreview", // Corrected endpoint
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -70,7 +70,7 @@ const ReviewsPage = () => {
       }
 
       await axios.put(
-        `http://localhost:5000/review/api/auth/updatereview`,
+        `https://smartserve-z2ms.onrender.com/review/api/auth/updatereview`,
         {
           reviewId: id,
           rating: ratings[id],

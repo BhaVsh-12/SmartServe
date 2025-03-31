@@ -59,7 +59,7 @@ const PaymentHistory = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5000/request/api/auth/getpayments', {
+        const response = await axios.get('https://smartserve-z2ms.onrender.com/request/api/auth/getpayments', {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,

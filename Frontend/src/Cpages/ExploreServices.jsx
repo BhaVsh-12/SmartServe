@@ -73,7 +73,7 @@ const ServiceCardUI = () => {
     const fetchProviders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:5000/user/api/auth/getServicemans/${servicename}`, {
+        const response = await axios.get(`https://smartserve-z2ms.onrender.com/user/api/auth/getServicemans/${servicename}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
