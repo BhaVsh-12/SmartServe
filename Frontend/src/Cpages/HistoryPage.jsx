@@ -16,7 +16,7 @@ const HistoryPage = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "https://smartserve-z2ms.onrender.com/request/api/auth/gethistory",
+          "http://localhost:5000/request/api/auth/gethistory",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -103,13 +103,13 @@ const HistoryPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        "https://smartserve-z2ms.onrender.com/request/api/auth/rebook",
+        "http://localhost:5000/request/api/auth/rebook",
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       // Refresh history after rebooking
       const response = await axios.get(
-        "https://smartserve-z2ms.onrender.com/request/api/auth/gethistory",
+        "http://localhost:5000/request/api/auth/gethistory",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -124,13 +124,13 @@ const HistoryPage = () => {
   const handleCancel = async (requestId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete("https://smartserve-z2ms.onrender.com/request/api/auth/cancle", {
+      await axios.delete("http://localhost:5000/request/api/auth/cancle", {
         headers: { Authorization: `Bearer ${token}` },
         data: { requestId },
       });
       // Refresh history after canceling
       const response = await axios.get(
-        "https://smartserve-z2ms.onrender.com/request/api/auth/gethistory",
+        "http://localhost:5000/request/api/auth/gethistory",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

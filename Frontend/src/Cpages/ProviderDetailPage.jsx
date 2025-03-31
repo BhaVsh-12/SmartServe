@@ -23,7 +23,7 @@ const ProviderDetailPage = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://smartserve-z2ms.onrender.com/user/api/auth/getServiceman/${providerId}`,
+          `http://localhost:5000/user/api/auth/getServiceman/${providerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -43,7 +43,7 @@ const ProviderDetailPage = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `https://smartserve-z2ms.onrender.com/user/api/auth/getreviews/${providerId}`,
+          `http://localhost:5000/user/api/auth/getreviews/${providerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -81,7 +81,7 @@ const ProviderDetailPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "https://smartserve-z2ms.onrender.com/request/api/auth/create",
+        "http://localhost:5000/request/api/auth/create",
         { servicemanId: providerId },
         {
           headers: { Authorization: `Bearer ${token}` },

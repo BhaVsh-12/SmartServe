@@ -32,7 +32,7 @@ const ProfilePage = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "https://smartserve-z2ms.onrender.com/user/api/auth/getProfile",
+          "http://localhost:5000/user/api/auth/getProfile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -75,7 +75,7 @@ const ProfilePage = () => {
 
       try {
         const uploadRes = await axios.post(
-          "https://smartserve-z2ms.onrender.com/user/api/auth/uploadPhoto",
+          "http://localhost:5000/user/api/auth/uploadPhoto",
           formData,
           {
             headers: {
@@ -94,7 +94,7 @@ const ProfilePage = () => {
 
     try {
       const response = await axios.put(
-        "https://smartserve-z2ms.onrender.com/user/api/auth/updateProfile",
+        "http://localhost:5000/user/api/auth/updateProfile",
         {
           fullName: editedProfile.fullName,
           location: editedProfile.location,

@@ -34,7 +34,7 @@ export default function Requests() {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('https://smartserve-z2ms.onrender.com/request/api/auth/getrequest', {
+        const response = await axios.get('http://localhost:5000/request/api/auth/getrequest', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setRequests(response.data);
@@ -53,7 +53,7 @@ export default function Requests() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'https://smartserve-z2ms.onrender.com/request/api/auth/accept',
+        'http://localhost:5000/request/api/auth/accept',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -74,12 +74,12 @@ export default function Requests() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'https://smartserve-z2ms.onrender.com/request/api/auth/complete',
+        'http://localhost:5000/request/api/auth/complete',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       await axios.post(
-        'https://smartserve-z2ms.onrender.com/review/api/auth/create',
+        'http://localhost:5000/review/api/auth/create',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -100,7 +100,7 @@ export default function Requests() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'https://smartserve-z2ms.onrender.com/request/api/auth/decline',
+        'http://localhost:5000/request/api/auth/decline',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -173,6 +173,8 @@ export default function Requests() {
               <option value="accepted">Accepted</option>
               <option value="completed">Completed</option>
               <option value="declined">Declined</option>
+              <option value="rejected">Rejected</option>
+              <option value="pursuing">Pursuing</option>
             </select>
           </div>
         </div>

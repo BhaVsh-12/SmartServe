@@ -28,7 +28,7 @@ export default function Reviews() {
     const fetchReviews = async () => {
       try {
         const response = await axios.get(
-          'https://smartserve-z2ms.onrender.com/review/api/auth/getreview',
+          'http://localhost:5000/review/api/auth/getreview',
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,

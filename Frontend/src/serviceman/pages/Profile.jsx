@@ -30,7 +30,7 @@ export default function Profile() {
       }
 
       try {
-        const response = await fetch("https://smartserve-z2ms.onrender.com/serviceman/api/auth/getProfile", {
+        const response = await fetch("http://localhost:5000/serviceman/api/auth/getProfile", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -67,7 +67,7 @@ export default function Profile() {
 
       try {
         const uploadRes = await axios.post(
-          "https://smartserve-z2ms.onrender.com/serviceman/api/auth/uploadPhoto",
+          "http://localhost:5000/serviceman/api/auth/uploadPhoto",
           formData,
           {
             headers: {
@@ -88,7 +88,7 @@ export default function Profile() {
 
     try {
       const response = await axios.put(
-        "https://smartserve-z2ms.onrender.com/serviceman/api/auth/updateProfile",
+        "http://localhost:5000/serviceman/api/auth/updateProfile",
         {
           fullName: profile.fullName,
           serviceCategory: profile.serviceCategory,
