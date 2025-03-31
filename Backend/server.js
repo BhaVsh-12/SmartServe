@@ -27,7 +27,7 @@ console.log("Debug: Serviceman model:", Serviceman);
 const allowedOrigins = [
     "http://localhost:5173", 
     "https://smart-serve-o58oe7q53-bhavsh-12s-projects.vercel.app",
-    "https://smart-serve-coral.vercel.app",
+    "https://smart-serve-coral.vercel.app/",
     "https://smart-serve-five.vercel.app",
   ];
   
