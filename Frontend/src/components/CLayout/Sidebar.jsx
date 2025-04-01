@@ -53,7 +53,7 @@ const Sidebar = () => {
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4">
-          {!isCollapsed && <h1 className="text-xl font-bold">ServiceHub</h1>}
+          {!isCollapsed && <h1 className="text-xl font-bold">SmartServe</h1>}
           <button onClick={toggleSidebar} className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800">
             <Menu size={20} />
           </button>
