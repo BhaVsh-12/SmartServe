@@ -19,7 +19,7 @@ import { SiPhonepe } from "react-icons/si";
 import phonepe from "../img/phonepe-icon.png";
 import google from "../img/google-pay-icon.png";
 import paytem from "../img/paytm-icon.png";
-
+import api from "../Api/capi";
 const UPI_APPS = [
   {
     name: "Google Pay",
@@ -47,10 +47,9 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
   const [upiId, setUpiId] = useState("");
   const [selectedUpiApp, setSelectedUpiApp] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (paymentMethod === "Card") {
       if (!cardNumber || !expiryDate || !cvv || !name) {
         toast.error("Please fill in all card details");
@@ -62,39 +61,31 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
         return;
       }
     }
-
+  
     setIsSubmitting(true);
     try {
       console.log("id:", payment.id);
-      const response = await fetch(
-        `http://localhost:5000/request/api/auth/payment`,
+      
+      const response = await api.put(
+        "/request/api/auth/payment",
         {
-          method: "PUT",
+          requestId: payment._id,
+          paymentmethod: paymentMethod,
+          cardno: cardNumber.toString(),
+          upiid: upiId,
+        },
+        {
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            requestId: payment._id,
-            paymentmethod: paymentMethod,
-            cardno: cardNumber.toString(),
-            upiid: upiId,
-          }),
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Payment failed. Please try again."
-        );
-      }
-
+  
       toast.success("Payment successful!");
       await onSubmit(payment.id);
       onClose();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Payment failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -362,32 +353,22 @@ function App() {
 
   const fetchPayments = async () => {
     try {
-      const pendingResponse = await fetch(
-        "http://localhost:5000/request/api/auth/pendingpayments",
-        {
+      const [pendingResponse, completedResponse] = await Promise.all([
+        api.get("/request/api/auth/pendingpayments", {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const completedResponse = await fetch(
-        "http://localhost:5000/request/api/auth/completedpayments",
-        {
+        }),
+        api.get("/request/api/auth/completedpayments", {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!pendingResponse.ok || !completedResponse.ok) {
-        throw new Error("Failed to fetch payments");
-      }
-
-      const pendingData = await pendingResponse.json();
-      console.log("pendingData", pendingData);
-      const completedData = await completedResponse.json();
-
-      setPendingPayments(pendingData);
-      setCompletedPayments(completedData);
-      setPayments([...pendingData, ...completedData]);
+        }),
+      ]);
+  
+      console.log("pendingData", pendingResponse.data);
+  
+      setPendingPayments(pendingResponse.data);
+      setCompletedPayments(completedResponse.data);
+      setPayments([...pendingResponse.data, ...completedResponse.data]);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Failed to fetch payments");
     }
   };
 

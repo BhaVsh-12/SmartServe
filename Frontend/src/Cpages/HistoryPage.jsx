@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import Button from "../components/CUI/Button";
-import axios from "axios";
+import api from "../Api/capi";
 
 const HistoryPage = () => {
   const { darkMode } = useAppContext();
@@ -15,8 +15,8 @@ const HistoryPage = () => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:5000/request/api/auth/gethistory",
+        const response = await api.get(
+          "/request/api/auth/gethistory",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -102,14 +102,14 @@ const HistoryPage = () => {
   const handleRebook = async (requestId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        "http://localhost:5000/request/api/auth/rebook",
+      await api.put(
+        "/request/api/auth/rebook",
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       // Refresh history after rebooking
-      const response = await axios.get(
-        "http://localhost:5000/request/api/auth/gethistory",
+      const response = await api.get(
+        "/request/api/auth/gethistory",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -124,13 +124,13 @@ const HistoryPage = () => {
   const handleCancel = async (requestId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete("http://localhost:5000/request/api/auth/cancle", {
+      await api.delete("/request/api/auth/cancle", {
         headers: { Authorization: `Bearer ${token}` },
         data: { requestId },
       });
       // Refresh history after canceling
-      const response = await axios.get(
-        "http://localhost:5000/request/api/auth/gethistory",
+      const response = await api.get(
+        "/request/api/auth/gethistory",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

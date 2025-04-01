@@ -5,7 +5,7 @@ import { ChevronLeft, MessageSquare, Phone, Calendar, Star, Clock } from "lucide
 import { useAppContext } from "../context/AppContext";
 import StarRating from "../components/CUI/StarRating";
 import Button from "../components/CUI/Button";
-import axios from "axios";
+import api from "../Api/capi";
 
 const ProviderDetailPage = () => {
   const { providerId } = useParams();
@@ -22,8 +22,8 @@ const ProviderDetailPage = () => {
     const fetchProvider = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `http://localhost:5000/user/api/auth/getServiceman/${providerId}`,
+        const response = await api.get(
+          `/user/api/auth/getServiceman/${providerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -42,8 +42,8 @@ const ProviderDetailPage = () => {
     const fetchReviews = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `http://localhost:5000/user/api/auth/getreviews/${providerId}`,
+        const response = await api.get(
+          `/user/api/auth/getreviews/${providerId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -80,8 +80,8 @@ const ProviderDetailPage = () => {
   const handleBook = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        "http://localhost:5000/request/api/auth/create",
+      const response = await api.post(
+        "/request/api/auth/create",
         { servicemanId: providerId },
         {
           headers: { Authorization: `Bearer ${token}` },

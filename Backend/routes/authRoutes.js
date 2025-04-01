@@ -177,7 +177,7 @@ router.post("/uploadPhoto", protectRoute("client"), upload.single("profilePhoto"
         return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const imageUrl = `https://smartserve-z2ms.onrender.com/uploads/${req.file.filename}`;
 
     try {
         const updatedUser = await User.findByIdAndUpdate(

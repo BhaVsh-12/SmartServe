@@ -12,7 +12,7 @@ import {
   Smartphone,
   DollarSign,
 } from 'lucide-react';
-import axios from 'axios';
+import api from "../../Api/capi"
 import { useTheme } from "../hooks/useTheme";
 
 const containerVariants = {
@@ -59,7 +59,7 @@ const PaymentHistory = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5000/request/api/auth/getpayments', {
+        const response = await api.get('/request/api/auth/getpayments', {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${token}`,

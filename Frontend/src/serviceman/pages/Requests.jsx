@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, Search, Clock, CheckCircle, XCircle, CheckSquare } from 'lucide-react';
-import axios from 'axios';
+import api from "../../Api/capi";
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -34,7 +34,7 @@ export default function Requests() {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/request/api/auth/getrequest', {
+        const response = await api.get('/request/api/auth/getrequest', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setRequests(response.data);
@@ -52,8 +52,8 @@ export default function Requests() {
   const handleAccept = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        'http://localhost:5000/request/api/auth/accept',
+      await api.post(
+        '/request/api/auth/accept',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -73,13 +73,13 @@ export default function Requests() {
   const handleComplete = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        'http://localhost:5000/request/api/auth/complete',
+      await api.post(
+        '/request/api/auth/complete',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      await axios.post(
-        'http://localhost:5000/review/api/auth/create',
+      await api.post(
+        '/review/api/auth/create',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -99,8 +99,8 @@ export default function Requests() {
   const handleDecline = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        'http://localhost:5000/request/api/auth/decline',
+      await api.post(
+        '/request/api/auth/decline',
         { requestId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

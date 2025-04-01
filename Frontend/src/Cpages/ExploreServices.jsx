@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, ArrowLeft, Search } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Api from "../Api/capi";
+import api from "../Api/capi";
 
 const StarRating = ({ rating }) => {
   return (
@@ -73,7 +73,7 @@ const ServiceCardUI = () => {
     const fetchProviders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:5000/user/api/auth/getServicemans/${servicename}`, {
+        const response = await api.get(`/user/api/auth/getServicemans/${servicename}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

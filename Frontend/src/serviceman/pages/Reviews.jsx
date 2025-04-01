@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Search, Filter } from 'lucide-react';
-import axios from 'axios';
+import api from "../../Api/capi";
 import { useAppContext } from '../../context/AppContext';
 
 const StarRating = ({ rating }) => {
@@ -27,8 +27,8 @@ export default function Reviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:5000/review/api/auth/getreview',
+        const response = await api.get(
+          '/review/api/auth/getreview',
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`,

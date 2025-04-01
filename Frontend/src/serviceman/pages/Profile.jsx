@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Save, MapPin, DollarSign, Clock, Briefcase, User2, Mail, Building, FileText, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from "axios";
+import api from "../../Api/capi";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -30,23 +30,17 @@ export default function Profile() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/serviceman/api/auth/getProfile", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        const response = await api.get("/serviceman/api/auth/getProfile", {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
-
-        const data = await response.json();
-        console.log("✅ Profile Data:", data);
-        setProfile(data);
+        console.log("✅ Profile Data:", response.data);
+        setProfile(response.data);
       } catch (error) {
-        toast.error("Failed to load profile.");
+        toast.error(`Failed to load profile: ${error.response?.data?.message || error.message}`);
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -66,8 +60,8 @@ export default function Profile() {
       formData.append("profilePhoto", selectedFile);
 
       try {
-        const uploadRes = await axios.post(
-          "http://localhost:5000/serviceman/api/auth/uploadPhoto",
+        const uploadRes = await api.post(
+          "/serviceman/api/auth/uploadPhoto",
           formData,
           {
             headers: {
@@ -87,8 +81,8 @@ export default function Profile() {
     }
 
     try {
-      const response = await axios.put(
-        "http://localhost:5000/serviceman/api/auth/updateProfile",
+      const response = await api.put(
+        "/serviceman/api/auth/updateProfile",
         {
           fullName: profile.fullName,
           serviceCategory: profile.serviceCategory,

@@ -11,7 +11,7 @@ import {
   Save,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import axios from "axios";
+import api from "../Api/capi";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -31,8 +31,8 @@ const ProfilePage = () => {
 
       setLoading(true);
       try {
-        const response = await axios.get(
-          "http://localhost:5000/user/api/auth/getProfile",
+        const response = await api.get(
+          "/user/api/auth/getProfile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -74,8 +74,8 @@ const ProfilePage = () => {
       formData.append("profilePhoto", selectedFile);
 
       try {
-        const uploadRes = await axios.post(
-          "http://localhost:5000/user/api/auth/uploadPhoto",
+        const uploadRes = await api.post(
+          "/user/api/auth/uploadPhoto",
           formData,
           {
             headers: {
@@ -93,8 +93,8 @@ const ProfilePage = () => {
     }
 
     try {
-      const response = await axios.put(
-        "http://localhost:5000/user/api/auth/updateProfile",
+      const response = await api.put(
+        "/user/api/auth/updateProfile",
         {
           fullName: editedProfile.fullName,
           location: editedProfile.location,

@@ -123,7 +123,7 @@ router.post("/uploadPhoto", protectRoute("serviceman"), upload.single("profilePh
     }
 
     // ✅ Generate Image URL
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const imageUrl = `https://smartserve-z2ms.onrender.com/uploads/${req.file.filename}`;
 
     try {
         // ✅ Update Profile Photo in Database

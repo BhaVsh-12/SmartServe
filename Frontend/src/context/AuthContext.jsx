@@ -1,5 +1,6 @@
 import { createContext, useState } from "react";
 import axios from "axios";
+import api from "../Api/capi";
 
 export const AuthContext = createContext();
 
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, userType) => {
         try {
-            const response = await axios.post(`http://localhost:5000/${userType}/api/auth/login`, { email, password });
+            const response = await api.post(`/${userType}/api/auth/login`, { email, password });
             setUser({ ...response.data, type: userType });
             localStorage.setItem("token", response.data.token);
             return response.data.role;
