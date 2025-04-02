@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Star, Search, Filter } from 'lucide-react';
 import api from "../../Api/capi";
 import { useAppContext } from '../../context/AppContext';
+import { useTheme } from '../hooks/useTheme';
 
 const StarRating = ({ rating }) => {
   return (
@@ -23,6 +24,12 @@ export default function Reviews() {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAppContext();
+  const { theme } = useTheme();
+  const [themeClass, setThemeClass] = useState(theme);
+
+  useEffect(() => {
+    setThemeClass(theme);
+  }, [theme]);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -64,7 +71,7 @@ export default function Reviews() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
+      className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 ${themeClass === 'dark' ? 'text-white' : 'text-gray-800'}`}
     >
       <div className="flex flex-col gap-4 mb-8">
         <div>
@@ -72,26 +79,26 @@ export default function Reviews() {
           <div className="mt-2 flex items-center gap-2">
             <StarRating rating={Math.round(averageRating)} />
             <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
-            <span className="text-gray-600 dark:text-gray-400">({reviews.length} reviews)</span>
+            <span className={`text-gray-600 ${themeClass === 'dark' ? 'dark:text-gray-400' : ''}`}>({reviews.length} reviews)</span>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={20} />
             <input
               type="text"
               placeholder="Search reviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-primary-500`}
             />
           </div>
           <div className="relative flex-1">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Filter className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={20} />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               <option value="all">All Ratings</option>
               <option value="5">5 Stars</option>
@@ -110,7 +117,7 @@ export default function Reviews() {
             key={review._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6"
+            className={`rounded-2xl shadow-lg p-4 sm:p-6 ${themeClass === 'dark' ? 'bg-gray-800' : 'bg-white'}`}
           >
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <img
@@ -124,11 +131,11 @@ export default function Reviews() {
                     <h3 className="font-semibold text-lg">{review.clientname}</h3>
                     <StarRating rating={review.rating} />
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className={`text-sm text-gray-600 ${themeClass === 'dark' ? 'dark:text-gray-400' : ''}`}>
                     {new Date(review.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="mt-2 text-gray-700 dark:text-gray-300">{review.review}</p>
+                <p className={`mt-2 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{review.review}</p>
               </div>
             </div>
           </motion.div>

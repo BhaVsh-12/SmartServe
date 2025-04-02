@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, MessageSquare, Phone, Calendar, Star, Clock } from "lucide-react";
+import {
+  ChevronLeft,
+  MessageSquare,
+  Phone,
+  Calendar,
+  Star,
+  Clock,
+  CircleCheck,
+  CircleX,
+} from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import StarRating from "../components/CUI/StarRating";
 import Button from "../components/CUI/Button";
@@ -22,12 +31,9 @@ const ProviderDetailPage = () => {
     const fetchProvider = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await api.get(
-          `/user/api/auth/getServiceman/${providerId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/user/api/auth/getServiceman/${providerId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         console.log("Provider Data:", response.data);
         setProvider(response.data);
@@ -42,12 +48,9 @@ const ProviderDetailPage = () => {
     const fetchReviews = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await api.get(
-          `/user/api/auth/getreviews/${providerId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/user/api/auth/getreviews/${providerId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         console.log("Reviews Data:", response.data);
         setReviews(response.data);
@@ -137,6 +140,17 @@ const ProviderDetailPage = () => {
               <p className={`text-lg font-medium ${darkMode ? "text-indigo-400" : "text-indigo-600"}`}>
                 {provider?.price || "Not Available"}/hour
               </p>
+              <div className="flex items-center mt-2">
+                {provider?.availability ? (
+                  <span className="flex items-center text-green-500">
+                    <CircleCheck size={18} className="mr-1" /> Available
+                  </span>
+                ) : (
+                  <span className="flex items-center text-red-500">
+                    <CircleX size={18} className="mr-1" /> Unavailable
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">

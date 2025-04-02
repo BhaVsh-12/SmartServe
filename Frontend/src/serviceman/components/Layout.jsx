@@ -17,8 +17,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
-
 import clsx from "clsx";
+import Swal from "sweetalert2"; // Import SweetAlert2
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const navItems = [
   { icon: User, label: "Profile", path: "profile" },
@@ -52,9 +54,24 @@ export default function Layout() {
 
   // ✅ Handle Logout (Clearing Auth)
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.success("Logged out successfully!");
+        navigate("/");
+      } else {
+        toast.info("Logout cancelled.");
+      }
+    });
   };
 
   return (

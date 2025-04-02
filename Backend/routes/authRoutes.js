@@ -83,12 +83,12 @@ router.get("/getServicemans/:subCategory", protectRoute("client"), async (req, r
         }
 
         const servicemen = await Serviceman.find({ subCategory: new RegExp(`^${subCategory}$`, "i") }).select("-password");
-
+        res.status(200).json(servicemen);
         if (servicemen.length === 0) {
             return res.status(404).json({ message: "No service providers found in this subcategory" });
         }
 
-        res.status(200).json(servicemen);
+        
     } catch (error) {
         console.error("Error fetching servicemen:", error);
         res.status(500).json({ message: "Internal server error" });

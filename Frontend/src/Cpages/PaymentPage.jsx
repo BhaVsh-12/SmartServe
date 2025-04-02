@@ -20,6 +20,8 @@ import phonepe from "../img/phonepe-icon.png";
 import google from "../img/google-pay-icon.png";
 import paytem from "../img/paytm-icon.png";
 import api from "../Api/capi";
+import { useAppContext } from "../context/AppContext";
+
 const UPI_APPS = [
   {
     name: "Google Pay",
@@ -47,9 +49,11 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
   const [upiId, setUpiId] = useState("");
   const [selectedUpiApp, setSelectedUpiApp] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { darkMode } = useAppContext();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (paymentMethod === "Card") {
       if (!cardNumber || !expiryDate || !cvv || !name) {
         toast.error("Please fill in all card details");
@@ -61,11 +65,9 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
         return;
       }
     }
-  
+
     setIsSubmitting(true);
     try {
-      console.log("id:", payment.id);
-      
       const response = await api.put(
         "/request/api/auth/payment",
         {
@@ -80,12 +82,14 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
           },
         }
       );
-  
+
       toast.success("Payment successful!");
       await onSubmit(payment.id);
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Payment failed. Please try again.");
+      toast.error(
+        error.response?.data?.message || "Payment failed. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -96,27 +100,37 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 ${
+        darkMode ? "bg-opacity-70" : ""
+      }`}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
+        className={`rounded-xl shadow-xl max-w-md w-full p-6 ${
+          darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+        }`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Payment Details</h2>
+          <h2 className="text-2xl font-bold">Payment Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 transition-colors"
+            className={`transition-colors ${
+              darkMode ? "text-gray-400 hover:text-gray-300" : "text-gray-400 hover:text-gray-500"
+            }`}
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
         <div className="mb-6">
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h3 className="font-medium text-gray-900">{payment.serviceman}</h3>
+          <div
+            className={`p-4 rounded-lg mb-4 ${
+              darkMode ? "bg-gray-700" : "bg-gray-50"
+            }`}
+          >
+            <h3 className="font-medium">{payment.serviceman}</h3>
             <p className="text-gray-600">Amount: ${payment.price.toFixed(2)}</p>
             <p className="text-gray-600">
               Due: {format(new Date(payment.createdAt), "MMM dd, yyyy")}
@@ -129,7 +143,11 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
               className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center space-x-2 ${
                 paymentMethod === "Card"
                   ? "bg-indigo-50 border-2 border-indigo-500 text-indigo-700"
-                  : "bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100"
+                  : `border-2 ${
+                      darkMode
+                        ? "border-gray-700 text-gray-300 hover:bg-gray-700"
+                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                    }`
               }`}
             >
               <CreditCard className="h-5 w-5" />
@@ -140,7 +158,11 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
               className={`flex-1 py-3 px-4 rounded-lg flex items-center justify-center space-x-2 ${
                 paymentMethod === "UPI"
                   ? "bg-indigo-50 border-2 border-indigo-500 text-indigo-700"
-                  : "bg-gray-50 border-2 border-gray-200 text-gray-700 hover:bg-gray-100"
+                  : `border-2 ${
+                      darkMode
+                        ? "border-gray-700 text-gray-300 hover:bg-gray-700"
+                        : "border-gray-200 text-gray-700 hover:bg-gray-100"
+                    }`
               }`}
             >
               <Smartphone className="h-5 w-5" />
@@ -159,7 +181,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Card Number
                     </label>
                     <div className="relative">
@@ -173,7 +195,9 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           )
                         }
                         placeholder="1234 5678 9012 3456"
-                        className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className={`pl-10 w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                          darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                        }`}
                         maxLength={16}
                       />
                     </div>
@@ -181,7 +205,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium mb-1">
                         Expiry Date
                       </label>
                       <div className="relative">
@@ -190,26 +214,28 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           type="text"
                           value={expiryDate}
                           onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+                            let value = e.target.value.replace(/\D/g, "");
 
                             if (value.length > 2) {
                               value = `${value.slice(0, 2)}/${value.slice(
                                 2,
                                 4
-                              )}`; // Format as MM/YY
+                              )}`;
                             }
 
                             setExpiryDate(value);
                           }}
                           placeholder="MM/YY"
-                          className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className={`pl-10 w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                            darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                          }`}
                           maxLength={5}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium mb-1">
                         CVV
                       </label>
                       <div className="relative">
@@ -218,12 +244,12 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           type="text"
                           value={cvv}
                           onChange={(e) =>
-                            setCvv(
-                              e.target.value.replace(/\D/g, "").slice(0, 3)
-                            )
+                            setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))
                           }
                           placeholder="123"
-                          className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className={`pl-10 w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                            darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                          }`}
                           maxLength={3}
                         />
                       </div>
@@ -231,7 +257,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       Cardholder Name
                     </label>
                     <div className="relative">
@@ -241,7 +267,9 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="John Doe"
-                        className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className={`pl-10 w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                          darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                        }`}
                       />
                     </div>
                   </div>
@@ -255,7 +283,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium mb-1">
                       UPI ID
                     </label>
                     <div className="relative">
@@ -265,13 +293,15 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                         value={upiId}
                         onChange={(e) => setUpiId(e.target.value)}
                         placeholder="username@upi"
-                        className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className={`pl-10 w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                          darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                        }`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-sm font-medium mb-3">
                       Select Payment App
                     </label>
                     <div className="space-y-2">
@@ -283,7 +313,11 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                           className={`w-full flex items-center justify-between p-3 rounded-lg border-2 ${
                             selectedUpiApp === app.name
                               ? "border-indigo-500 bg-indigo-50"
-                              : "border-gray-200 hover:bg-gray-50"
+                              : `border-gray-200 hover:bg-gray-50 ${
+                                  darkMode
+                                    ? "border-gray-700 hover:bg-gray-700"
+                                    : ""
+                                }`
                           }`}
                         >
                           <div className="flex items-center space-x-3">
@@ -292,7 +326,7 @@ const PaymentModal = ({ payment, onClose, onSubmit, token }) => {
                               alt={app.name}
                               className="h-8 w-8"
                             />
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium">
                               {app.name}
                             </span>
                           </div>
@@ -337,6 +371,7 @@ function App() {
   const [completedPayments, setCompletedPayments] = useState([]);
   const [pendingPayments, setPendingPayments] = useState([]);
   const [token, setToken] = useState(null);
+  const { darkMode } = useAppContext();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -361,9 +396,7 @@ function App() {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
-  
-      console.log("pendingData", pendingResponse.data);
-  
+
       setPendingPayments(pendingResponse.data);
       setCompletedPayments(completedResponse.data);
       setPayments([...pendingResponse.data, ...completedResponse.data]);
@@ -377,12 +410,16 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div
+      className={`min-h-screen ${
+        darkMode
+          ? "bg-gradient-to-br from-gray-900 to-gray-800 text-white"
+          : "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Payment Dashboard
-          </h1>
+          <h1 className="text-4xl font-bold mb-2">Payment Dashboard</h1>
           <p className="text-gray-600">
             Manage your payments and invoices in one place
           </p>
@@ -393,13 +430,13 @@ function App() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6"
+            className={`rounded-xl shadow-lg p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
           >
             <div className="flex items-center mb-6">
               <CheckCircle2 className="h-6 w-6 text-green-500 mr-2" />
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Completed Payments
-              </h2>
+              <h2 className="text-2xl font-semibold">Completed Payments</h2>
             </div>
 
             <div className="space-y-4">
@@ -410,18 +447,18 @@ function App() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    className={`flex items-center justify-between p-4 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-gray-50"
+                    }`}
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {payment.serviceman}
-                      </p>
+                      <p className="font-medium">{payment.serviceman}</p>
                       <p className="text-sm text-gray-500">
                         {format(new Date(payment.paymentAt), "MMM dd, yyyy")}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold">
                         ${payment.price.toFixed(2)}
                       </p>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -438,13 +475,13 @@ function App() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6"
+            className={`rounded-xl shadow-lg p-6 ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
           >
             <div className="flex items-center mb-6">
               <Clock className="h-6 w-6 text-yellow-500 mr-2" />
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Pending Payments
-              </h2>
+              <h2 className="text-2xl font-semibold">Pending Payments</h2>
             </div>
 
             <div className="space-y-4">
@@ -455,20 +492,19 @@ function App() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    className={`flex items-center justify-between p-4 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-gray-50"
+                    }`}
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {payment.serviceman}
-                      </p>
+                      <p className="font-medium">{payment.serviceman}</p>
                       <p className="text-sm text-gray-500">
-                        Due:{" "}
-                        {format(new Date(payment.createdAt), "MMM dd, yyyy")}
+                        Due: {format(new Date(payment.createdAt), "MMM dd, yyyy")}
                       </p>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold">
                           ${payment.price.toFixed(2)}
                         </p>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -525,7 +561,7 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
+        theme={darkMode ? "dark" : "light"}
       />
     </div>
   );

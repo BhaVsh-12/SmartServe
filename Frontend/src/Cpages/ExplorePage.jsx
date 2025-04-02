@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as LucideIcons from "lucide-react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
 
 const serviceTypes = [
   {
@@ -78,7 +79,7 @@ const serviceTypes = [
   },
 ];
 
-const CategoryCard = ({ category, onClick, darkMode }) => {
+const CategoryCard = ({ category, onClick }) => {
   const IconComponent = LucideIcons[
     category.icon.charAt(0).toUpperCase() + category.icon.slice(1)
   ];
@@ -94,7 +95,7 @@ const CategoryCard = ({ category, onClick, darkMode }) => {
     initial: { rotate: 0 },
     hover: { rotate: 10, transition: { duration: 0.2 } },
   };
-
+  const { darkMode } = useAppContext();
   return (
     <motion.div
       className={`rounded-xl overflow-hidden ${
@@ -134,7 +135,7 @@ const CategoryCard = ({ category, onClick, darkMode }) => {
   );
 };
 
-const SubcategoryItem = ({ service, darkMode }) => {
+const SubcategoryItem = ({ service }) => {
   const IconComponent = LucideIcons[
     service.icon.charAt(0).toUpperCase() + service.icon.slice(1)
   ];
@@ -144,7 +145,9 @@ const SubcategoryItem = ({ service, darkMode }) => {
     hover: { scale: 1.02, transition: { duration: 0.2 } },
     tap: { scale: 0.98, transition: { duration: 0.1 } },
   };
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { darkMode } = useAppContext();
+
   return (
     <motion.div
       variants={itemVariants}
@@ -168,9 +171,7 @@ const SubcategoryItem = ({ service, darkMode }) => {
           {service.title}
         </span>
       </div>
-      <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"
-        }`}
-      >
+      <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
         {service.providerCount} Providers
       </span>
     </motion.div>
@@ -178,9 +179,9 @@ const SubcategoryItem = ({ service, darkMode }) => {
 };
 
 const CategoryCardUI = () => {
-  const [darkMode, setDarkMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const { darkMode } = useAppContext();
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -220,14 +221,6 @@ const CategoryCardUI = () => {
         />
       </div>
 
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className={`mb-4 px-4 py-2 rounded-md ${
-          darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"
-        }`}
-      >
-        Toggle Dark Mode
-      </button>
       <AnimatePresence mode="wait">
         {selectedCategory ? (
           <motion.div
@@ -252,7 +245,7 @@ const CategoryCardUI = () => {
             </h2>
             <div className="space-y-2">
               {selectedCategory.services.map((service, index) => (
-                <SubcategoryItem key={index} service={service} darkMode={darkMode} />
+                <SubcategoryItem key={index} service={service} />
               ))}
             </div>
           </motion.div>
@@ -270,7 +263,6 @@ const CategoryCardUI = () => {
                 key={category.category}
                 category={category}
                 onClick={() => handleCategoryClick(category)}
-                darkMode={darkMode}
               />
             ))}
           </motion.div>

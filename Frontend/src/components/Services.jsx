@@ -3,7 +3,7 @@ import {
   Home, Wrench, Tv, Wifi, Shield, Settings, Laptop, Smartphone, Database, 
   Dumbbell, HeartPulse, Car, Briefcase, BookOpen, Scissors, Camera 
 } from "lucide-react";
-
+import toast from "react-hot-toast"; // Import toast
 
 const Services = () => {
   const serviceTypes = [
@@ -21,7 +21,6 @@ const Services = () => {
         { icon: <Laptop className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors duration-300" />, title: "IT Support", description: "Comprehensive IT support for businesses and individuals." },
         { icon: <Database className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors duration-300" />, title: "Software Development", description: "Custom software solutions for your needs." },
         { icon: <Wifi className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors duration-300" />, title: "Networking", description: "Reliable networking solutions for homes and offices." }
-
       ]
     },
     {
@@ -60,6 +59,10 @@ const Services = () => {
     }
   ];
 
+  const handleServiceClick = () => {
+    toast.error("Login to access this feature");
+  };
+
   return (
     <section id="services" className="section-padding bg-white py-12">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -75,7 +78,7 @@ const Services = () => {
                 <div
                   key={idx}
                   className="group p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-blue-500 hover:scale-105"
-                  onClick={()=>(alert("Login to access this feature"))}
+                  onClick={handleServiceClick} // Use the handleServiceClick function
                 >
                   <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-colors duration-300">
                     {service.icon}

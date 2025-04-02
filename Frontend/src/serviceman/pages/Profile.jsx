@@ -3,12 +3,19 @@ import { motion } from 'framer-motion';
 import { Camera, Save, MapPin, DollarSign, Clock, Briefcase, User2, Mail, Building, FileText, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from "../../Api/capi";
+import { useTheme } from "../hooks/useTheme";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const { theme } = useTheme();
+  const [themeClass, setThemeClass] = useState(theme);
+
+  useEffect(() => {
+    setThemeClass(theme);
+  }, [theme]);
 
   const categories = {
     'Home Services': ['Plumbing', 'Cleaning', 'Painting'],
@@ -110,6 +117,7 @@ export default function Profile() {
       toast.error("Failed to update profile.");
     }
   };
+
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -121,22 +129,25 @@ export default function Profile() {
       reader.readAsDataURL(file);
     }
   };
+
   const triggerFileInput = () => {
     fileInputRef.current.click();
   };
+
   if (!profile) {
     return <div>Loading profile...</div>;
   }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto"
+      className={`max-w-7xl mx-auto ${themeClass === 'dark' ? 'text-white' : 'text-gray-800'}`}
     >
       <h1 className="text-3xl font-bold mb-8">Profile Management</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+          <div className={`rounded-2xl shadow-lg p-6 ${themeClass === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6">
                 <img
@@ -160,25 +171,25 @@ export default function Profile() {
                 />
               </div>
               <h2 className="text-2xl font-bold mb-2">{profile.fullName}</h2>
-              <div className="flex items-center justify-center text-gray-600 dark:text-gray-400 mb-4">
+              <div className={`flex items-center justify-center mb-4 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                 <MapPin size={16} className="mr-1" />
                 <span>{profile.location}</span>
               </div>
               <div className="flex items-center justify-center gap-4 mb-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary-500">{profile.price}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Hourly Rate</div>
+                  <div className={`text-sm ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Hourly Rate</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-500">
                     {profile.availability ? "Available" : "Busy"}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Status</div>
+                  <div className={`text-sm ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Status</div>
                 </div>
               </div>
-              <div className="w-full p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+              <div className={`w-full p-4 rounded-xl ${themeClass === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
                 <h3 className="font-semibold mb-2">Service Category</h3>
-                <p className="text-gray-600 dark:text-gray-400">{profile.serviceCategory}</p>
+                <p className={` ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{profile.serviceCategory}</p>
                 <p className="text-sm text-primary-500 mt-1">{profile.subCategory}</p>
               </div>
             </div>
@@ -186,24 +197,23 @@ export default function Profile() {
         </div>
 
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+          <div className={`rounded-2xl shadow-lg p-6 ${themeClass === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">Profile Details</h3>
               <div className="flex gap-4">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="px-4 py-2 rounded-lg border border-primary-500 text-primary-500 hover:bg-primary-50 dark:hover:bg-gray-700 transition-colors"
+                  className={`px-4 py-2 rounded-lg border border-gray-500 ${themeClass === 'dark' ? 'text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 hover:bg-gray-100' : 'text-gray-500 hover:bg-gray-100'} transition-colors`}
                 >
-                  {isEditing? 'Cancel'
-                    : 'Edit Profile'}
+                  {isEditing ? 'Cancel' : 'Edit Profile'}
                 </button>
                 {isEditing && (
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center gap-2"
                   >
                     <Save size={20} />
-                    Save Changes
+                    Save
                   </button>
                 )}
               </div>
@@ -212,8 +222,8 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <User2 size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <User2 size={16} className="mr-2 text-blue-500" />
                     Full Name
                   </label>
                   <input
@@ -221,26 +231,26 @@ export default function Profile() {
                     value={profile.fullName}
                     onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <Mail size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Mail size={16} className="mr-2 text-green-500" />
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={profile.email}
                     disabled={true}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <MapPin size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <MapPin size={16} className="mr-2 text-red-500" />
                     Location
                   </label>
                   <input
@@ -248,15 +258,15 @@ export default function Profile() {
                     value={profile.location}
                     onChange={(e) => setProfile({ ...profile, location: e.target.value })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <Briefcase size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Briefcase size={16} className="mr-2 text-yellow-500" />
                     Service Category
                   </label>
                   {isEditing ? (
@@ -269,7 +279,7 @@ export default function Profile() {
                           subCategory: categories[e.target.value][0],
                         });
                       }}
-                      className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                      className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                     >
                       {Object.keys(categories).map((category) => (
                         <option key={category} value={category}>
@@ -282,21 +292,21 @@ export default function Profile() {
                       type="text"
                       value={profile.serviceCategory}
                       disabled={true}
-                      className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                      className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <Building size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Building size={16} className="mr-2 text-purple-500" />
                     Sub Category
                   </label>
                   {isEditing ? (
                     <select
                       value={profile.subCategory}
                       onChange={(e) => setProfile({ ...profile, subCategory: e.target.value })}
-                      className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                      className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                     >
                       {categories[profile.serviceCategory]?.map((subCategory) => (
                         <option key={subCategory} value={subCategory}>
@@ -309,14 +319,14 @@ export default function Profile() {
                       type="text"
                       value={profile.subCategory}
                       disabled={true}
-                      className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                      className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                     />
                   )}
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <DollarSign size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <DollarSign size={16} className="mr-2 text-indigo-500" />
                     Hourly Rate
                   </label>
                   <input
@@ -324,40 +334,40 @@ export default function Profile() {
                     value={profile.price}
                     onChange={(e) => setProfile({ ...profile, price: Number(e.target.value) })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <Clock size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Clock size={16} className="mr-2 text-pink-500" />
                     Availability
                   </label>
                   <select
                     value={profile.availability ? "true" : "false"}
                     onChange={(e) => setProfile({ ...profile, availability: e.target.value === "true" })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   >
                     <option value="true">Available</option>
                     <option value="false">Not Available</option>
                   </select>
                 </div>
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <FileText size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <FileText size={16} className="mr-2 text-gray-500" />
                     Description
                   </label>
                   <textarea
                     value={profile.description || ""}
                     onChange={(e) => setProfile({ ...profile, description: e.target.value })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
                 <div>
-                  <label className="flex items-center text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                    <Star size={16} className="mr-2" />
+                  <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <Star size={16} className="mr-2 text-orange-500" />
                     Experience
                   </label>
                   <input
@@ -365,7 +375,7 @@ export default function Profile() {
                     value={profile.experience || ""}
                     onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
                     disabled={!isEditing}
-                    className="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-primary-500"
+                    className={`w-full p-3 rounded-lg border ${themeClass === 'dark' ? 'dark:border-gray-600 dark:bg-gray-700' : 'border-gray-300'} focus:ring-2 focus:ring-primary-500`}
                   />
                 </div>
               </div>

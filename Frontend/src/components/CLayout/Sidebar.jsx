@@ -14,6 +14,9 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const Sidebar = () => {
   const { darkMode } = useAppContext();
@@ -25,10 +28,23 @@ const Sidebar = () => {
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   const handleLogout = () => {
-    if (confirm("Are you sure you want to logout?")) {
-      localStorage.removeItem("token");
-      navigate("/");
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("token");
+        toast.success("Logged out successfully!");
+        navigate("/");
+      } else {
+        toast.info("Logout cancelled.");
+      }
+    });
   };
 
   const navItems = [

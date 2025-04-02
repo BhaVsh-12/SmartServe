@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../Api/capi";
+import { useAppContext } from "../context/AppContext";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -20,6 +21,7 @@ const ProfilePage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(true);
+  const { darkMode } = useAppContext();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -31,14 +33,11 @@ const ProfilePage = () => {
 
       setLoading(true);
       try {
-        const response = await api.get(
-          "/user/api/auth/getProfile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await api.get("/user/api/auth/getProfile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setProfile(response.data);
         setEditedProfile({ ...response.data });
@@ -74,16 +73,12 @@ const ProfilePage = () => {
       formData.append("profilePhoto", selectedFile);
 
       try {
-        const uploadRes = await api.post(
-          "/user/api/auth/uploadPhoto",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        const uploadRes = await api.post("/user/api/auth/uploadPhoto", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
         imageUrl = uploadRes.data.imageUrl;
       } catch (error) {
@@ -152,11 +147,11 @@ const ProfilePage = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-md"
+      className={`p-6 max-w-md mx-auto rounded-lg shadow-md ${
+        darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+      }`}
     >
-      <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
-        Your Profile
-      </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-center">Your Profile</h2>
 
       <div className="flex flex-col items-center mb-6">
         <motion.div
@@ -192,7 +187,7 @@ const ProfilePage = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="border rounded-md p-3">
+        <div className={`border rounded-md p-3 ${darkMode ? "border-gray-700" : ""}`}>
           <div className="flex items-center space-x-2 text-gray-700">
             <User className="h-5 w-5" />
             <label className="font-semibold">Full Name:</label>
@@ -203,12 +198,14 @@ const ProfilePage = () => {
             value={editedProfile.fullName}
             onChange={handleInputChange}
             disabled={!editMode}
-            className="mt-1 w-full border rounded-md p-2 focus:ring focus:ring-primary-300 outline-none"
+            className={`mt-1 w-full border rounded-md p-2 focus:ring focus:ring-primary-300 outline-none ${
+              darkMode ? "bg-gray-800 text-white border-gray-700" : ""
+            }`}
             placeholder="Full Name"
           />
         </div>
 
-        <div className="border rounded-md p-3">
+        <div className={`border rounded-md p-3 ${darkMode ? "border-gray-700" : ""}`}>
           <div className="flex items-center space-x-2 text-gray-700">
             <MapPin className="h-5 w-5" />
             <label className="font-semibold">Location:</label>
@@ -219,12 +216,14 @@ const ProfilePage = () => {
             value={editedProfile.location}
             onChange={handleInputChange}
             disabled={!editMode}
-            className="mt-1 w-full border rounded-md p-2 focus:ring focus:ring-primary-300 outline-none"
+            className={`mt-1 w-full border rounded-md p-2 focus:ring focus:ring-primary-300 outline-none ${
+              darkMode ? "bg-gray-800 text-white border-gray-700" : ""
+            }`}
             placeholder="Location"
           />
         </div>
 
-        <div className="border rounded-md p-3 bg-gray-50">
+        <div className={`border rounded-md p-3 ${darkMode ? "bg-gray-800" : "bg-gray-50"}`}>
           <div className="flex items-center space-x-2 text-gray-700">
             <Mail className="h-5 w-5" />
             <label className="font-semibold">Email:</label>
@@ -234,7 +233,7 @@ const ProfilePage = () => {
             name="email"
             value={editedProfile.email}
             disabled={true}
-            className="mt-1 w-full border rounded-md p-2 bg-transparent outline-none"
+            className={`mt-1 w-full border rounded-md p-2 bg-transparent outline-none ${darkMode ? "text-white" : ""}`}
             placeholder="Email"
           />
         </div>

@@ -57,8 +57,8 @@ function Home() {
       <Team />
       <Contact />
       <Footer />
-      {activeForm === "login" && <Login onClose={() => setActiveForm(null)} />}
-      {activeForm === "signup" && <Signup onClose={() => setActiveForm(null)} />}
+      {activeForm === "login" && <Login onClose={() => setActiveForm(null)}  onSignup={() => setActiveForm("signup")} />}
+      {activeForm === "signup" && <Signup onClose={() => setActiveForm(null)} Login={() => setActiveForm("login")}  />}
     </div>
   )
 }

@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import Api from "../Api/capi";
+import toast from "react-hot-toast"; // Import toast
 
-export default function Login({ onClose }) {
+export default function Login({ onClose ,onSignup }) {
   const [userType, setUserType] = useState("client");
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [apiError, setApiError] = useState(""); // Store API errors
   const navigate = useNavigate();
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,13 +24,19 @@ export default function Login({ onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: validateField(name, value) }));
   };
+  const openSignup =()=>{
+    onClose();
+    onSignup();
 
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (errors.email || errors.password) return;
+    if (errors.email || errors.password) {
+      toast.error("Please fix the errors in the form.");
+      return;
+    }
 
     setIsSubmitting(true);
-    setApiError("");
 
     try {
       const endpoint = userType === "client" ? "/user/api/auth/login" : "/serviceman/api/auth/login";
@@ -44,11 +50,12 @@ export default function Login({ onClose }) {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("role", userType);
 
-      alert("Login successful!");
-      navigate(userType === "client" ? "/client/explore" : "/service");  // ✅ Ensure correct navigation
+      toast.success("Login successful!");
+      navigate(userType === "client" ? "/client/explore" : "/service");
     } catch (error) {
       console.error("Login Error:", error);
-      setApiError(error.response?.data?.message || "Login failed. Please try again.");
+      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -57,7 +64,7 @@ export default function Login({ onClose }) {
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
       <div className="relative w-full max-w-sm p-6 rounded-lg shadow-lg bg-white border border-gray-300 
-                      md:absolute md:right-0 md:top-[40%] md:-translate-y-1/2">
+                    md:absolute md:right-0 md:top-[40%] md:-translate-y-1/2">
         <button
           className="absolute top-2 right-2 p-1 rounded-full text-gray-500 hover:bg-gray-200 transition"
           onClick={onClose}
@@ -107,9 +114,6 @@ export default function Login({ onClose }) {
             {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
           </div>
 
-          {/* API Error Message */}
-          {apiError && <p className="text-red-500 text-sm text-center">{apiError}</p>}
-
           <button
             type="submit"
             className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
@@ -121,7 +125,7 @@ export default function Login({ onClose }) {
 
         <p className="text-center mt-4">
           Don't have an account?{" "}
-          <button className="text-blue-600 hover:underline" onClick={onClose}>
+          <button className="text-blue-600 hover:underline" onClick={openSignup}>
             Signup
           </button>
         </p>
