@@ -99,6 +99,25 @@ const ProviderDetailPage = () => {
     }
   };
 
+  const handleChat = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.post(
+        "/chat/api/createRoom",
+        { servicemanId: providerId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log("Chat Room Response:", response.data);
+      navigate(`/client/chat`);
+    } catch (err) {
+      console.error("Error creating chat room:", err);
+      setError("Failed to create chat room.");
+    }
+  };
+
   return (
     <div className="container mx-auto">
       <Button
@@ -154,7 +173,7 @@ const ProviderDetailPage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <Button variant="primary" icon={<MessageSquare size={18} />} onClick={() => navigate?.("/chat")}>
+              <Button variant="primary" icon={<MessageSquare size={18} />} onClick={handleChat}>
                 Chat
               </Button>
               <Button variant="outline" icon={<Phone size={18} />}>

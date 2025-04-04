@@ -1,173 +1,305 @@
-import { useState } from "react";
+// frontend/components/ServicemanChat.js
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Send, Search, Phone, Video, MoreVertical, Smile, ArrowLeft } from "lucide-react";
-
-const mockChats = [
-  {
-    id: "user1",
-    name: "Sarah Johnson",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    lastMessage: "When can you come to fix the pipe?",
-    unread: 2,
-    online: true,
-  },
-  {
-    id: "user2",
-    name: "Michael Chen",
-    avatar:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    lastMessage: "Thanks for the quick service!",
-    unread: 0,
-    online: false,
-  },
-];
-
-const mockMessages = [
-  {
-    id: "1",
-    senderId: "user1",
-    receiverId: "me",
-    content: "Hi, I have a leaking pipe in my kitchen.",
-    timestamp: "09:30 AM",
-  },
-  {
-    id: "2",
-    senderId: "me",
-    receiverId: "user1",
-    content: "I can help you with that. Can you describe the issue in more detail?",
-    timestamp: "09:32 AM",
-  },
-  {
-    id: "3",
-    senderId: "user1",
-    receiverId: "me",
-    content:
-      "The pipe under the sink is dripping constantly. I've put a bucket underneath but it's filling up quickly.",
-    timestamp: "09:35 AM",
-  },
-];
+import {
+    Send,
+    Search,
+    Phone,
+    Video,
+    MoreVertical,
+    Smile,
+    ArrowLeft,
+} from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import Api from "../../Api/capi";
+import { io } from "socket.io-client";
+import { useTheme } from "../hooks/useTheme";
 
 export default function Chat() {
-  const [selectedChat, setSelectedChat] = useState(mockChats[0]);
-  const [newMessage, setNewMessage] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showSidebar, setShowSidebar] = useState(true);
+    const [chats, setChats] = useState([]);
+    const [selectedChat, setSelectedChat] = useState(null);
+    const [newMessage, setNewMessage] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showSidebar, setShowSidebar] = useState(true);
+    const navigate = useNavigate();
+    const [messages, setMessages] = useState([]);
+    const { roomId: routeRoomId } = useParams();
+    const { theme } = useTheme();
+    const darkMode = theme === "dark";
+    const socketRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
-  const filteredChats = mockChats.filter((chat) =>
-    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    useEffect(() => {
+        if (!socketRef.current) {
+            socketRef.current = io("https://smartserve-z2ms.onrender.com");
+        }
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    setNewMessage("");
-  };
+        if (selectedChat) {
+            socketRef.current.emit("joinRoom", selectedChat.roomId);
+            console.log(`Socket re-joined room: ${selectedChat.roomId}`);
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto h-[calc(100vh-8rem)]">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg h-full flex overflow-hidden">
-        {/* Sidebar */}
-        <div className={`w-full sm:w-80 border-r dark:border-gray-700 flex flex-col ${showSidebar ? "block" : "hidden sm:block"}`}>
-          <div className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {filteredChats.map((chat) => (
-              <div
-                key={chat.id}
-                onClick={() => {
-                  setSelectedChat(chat);
-                  setShowSidebar(false);
-                }}
-                className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 ${
-                  selectedChat.id === chat.id ? "bg-gray-50 dark:bg-gray-700" : ""
-                }`}
-              >
-                <div className="relative">
-                  <img src={chat.avatar} alt={chat.name} className="w-12 h-12 rounded-full object-cover" />
-                  {chat.online && (
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-semibold truncate">{chat.name}</h3>
-                    {chat.unread > 0 && <span className="bg-primary-500 text-white text-xs px-2 py-1 rounded-full">{chat.unread}</span>}
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{chat.lastMessage}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+            socketRef.current.on("receive_message", (message) => {
+                console.log("Received message:", message);
+                setMessages((prevMessages) => [...prevMessages, message]);
+            });
+        }
 
-        {/* Chat Area */}
-        <div className={`flex-1 flex flex-col ${!showSidebar ? "block" : "hidden sm:block"}`}>
-          {/* Chat Header */}
-          <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowSidebar(true)} className="sm:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                <ArrowLeft size={20} />
-              </button>
-              <img src={selectedChat.avatar} alt={selectedChat.name} className="w-10 h-10 rounded-full object-cover" />
-              <div>
-                <h2 className="font-semibold">{selectedChat.name}</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedChat.online ? "Online" : "Offline"}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Phone size={20} />
-              </button>
-              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Video size={20} />
-              </button>
-              <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <MoreVertical size={20} />
-              </button>
-            </div>
-          </div>
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.off("receive_message");
+                if (selectedChat) {
+                    socketRef.current.emit("leaveRoom", selectedChat.roomId);
+                }
+            }
+        };
+    }, [selectedChat]);
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {mockMessages.map((message) => (
-              <div key={message.id} className={`flex ${message.senderId === "me" ? "justify-end" : "justify-start"}`}>
+    useEffect(() => {
+        const fetchChats = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem("token");
+                const response = await Api.get("/chat/api/serviceman/getrooms", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setChats(response.data);
+            } catch (error) {
+                console.error("Error fetching chats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchChats();
+    }, []);
+
+    useEffect(() => {
+        if (routeRoomId) {
+            const chatToSelect = chats.find((chat) => chat.roomId === routeRoomId);
+            if (chatToSelect) {
+                setSelectedChat(chatToSelect);
+            } else {
+                setSelectedChat(null);
+                console.error("Room not found");
+                navigate("/service/chat");
+                return;
+            }
+        } else if (chats.length > 0) {
+            setSelectedChat(chats[0]);
+        } else {
+            setSelectedChat(null);
+        }
+    }, [chats, routeRoomId, navigate]);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (selectedChat) {
+                try {
+                    setLoading(true);
+                    const token = localStorage.getItem("token");
+                    const response = await Api.get(`/chat/api/serviceman/messages/${selectedChat.roomId}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setMessages(response.data);
+                } catch (error) {
+                    console.error("Error fetching messages:", error);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setMessages([]);
+            }
+        };
+        fetchMessages();
+    }, [selectedChat]);
+
+    const filteredChats = chats.filter(
+        (chat) =>
+            chat.clientname &&
+            typeof chat.clientname === "string" &&
+            chat.clientname.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleSendMessage = async (e) => {
+      e.preventDefault();
+      if (!newMessage.trim() || !selectedChat) return;
+    
+      try {
+          const token = localStorage.getItem("token");
+          const response = await Api.post(
+              `/chat/api/serviceman/send/${selectedChat.roomId}`,
+              {
+                  message: newMessage,
+              },
+              {
+                  headers: { Authorization: `Bearer ${token}` },
+              }
+          );
+    
+          setNewMessage("");
+          setMessages((prevMessages) => [
+              ...prevMessages,
+              response.data,
+          ]);
+      } catch (error) {
+          console.error("Error sending message:", error);
+      }
+    };
+    const chatContainerClass = `${darkMode ? "bg-gray-800" : "bg-white"} rounded-2xl shadow-lg h-full flex overflow-hidden`;
+    const textStyle = darkMode ? "text-white" : "text-gray-900";
+    const mutedTextStyle = darkMode ? "text-gray-400" : "text-gray-500";
+    const iconStyle = darkMode ? "text-gray-400" : "text-gray-500";
+    const inputStyle = `w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"}`;
+    const borderStyle = darkMode ? "border-gray-700" : "border-gray-200";
+    const hoverStyle = darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100";
+    const selectedChatStyle = darkMode ? "bg-gray-700" : "bg-gray-100";
+    const messageBgStyle = (sender) => (sender === "serviceman" ? "bg-blue-500 text-white" : darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900");
+
+    if (loading) {
+        return <div>Loading...</div>; // Simple loading indicator
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-6xl mx-auto h-[calc(100vh-8rem)]"
+        >
+            <div className={chatContainerClass}>
                 <div
-                  className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2 ${
-                    message.senderId === "me" ? "bg-primary-500 text-white" : "bg-gray-100 dark:bg-gray-700"
-                  }`}
+                    className={`w-full sm:w-80 border-r ${borderStyle} flex flex-col ${showSidebar ? "block" : "hidden sm:block"}`}
                 >
-                  <p>{message.content}</p>
-                  <p className="text-xs mt-1 opacity-70">{message.timestamp}</p>
+                    <div className="p-4">
+                        <div className="relative">
+                            <Search
+                                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${iconStyle}`}
+                                size={20}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Search conversations..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className={inputStyle}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {filteredChats.map((chat) => (
+                            <div
+                                key={chat.roomId}
+                                onClick={() => {
+                                    setSelectedChat(chat);
+                                    setShowSidebar(false);
+                                    navigate(`/service/chat/${chat.roomId}`);
+                                }}
+                                className={`p-4 cursor-pointer transition-colors flex items-center gap-3 ${selectedChat?.roomId === chat.roomId ? selectedChatStyle : ""} ${hoverStyle}`}
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={chat.clientPhoto}
+                                        alt={chat.clientname}
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start">
+                                        <h3 className={`font-semibold truncate ${textStyle}`}>
+                                            {chat.clientname}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-              </div>
-            ))}
-          </div>
+                <div
+                    className={`flex-1 flex flex-col ${!showSidebar ? "block" : "hidden sm:block"}`}
+                >
+                    {selectedChat && (
+                        <>
+                            <div
+                                className={`p-4 border-b ${borderStyle} flex justify-between items-center`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setShowSidebar(true)}
+                                        className={`sm:hidden p-2 ${hoverStyle} rounded-lg ${iconStyle}`}
+                                    >
+                                        <ArrowLeft size={20} />
+                                    </button>
+                                    <img
+                                        src={selectedChat.clientPhoto}
+                                        alt={selectedChat.clientname}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                    <div>
+                                        <h2 className={`font-semibold ${textStyle}`}>
+                                            {selectedChat.clientname}
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 sm:gap-4">
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <Phone size={20} />
+                                    </button>
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <Video size={20} />
+                                    </button>
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <MoreVertical size={20} />
+                                    </button>
+                                </div>
+                            </div>
 
-          {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="p-4 border-t dark:border-gray-700">
-            <div className="flex items-center gap-2">
-              <button type="button" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-                <Smile size={24} />
-              </button>
-              <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1 px-4 py-2 rounded-full border dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500" />
-              <button type="submit" className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors">
-                <Send size={24} />
-              </button>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {messages.map((message, index) => (
+                                    <div
+                                        key={index}
+                                        className={`flex ${message.sender === "serviceman" ? "justify-end" : "justify-start"}`}
+                                    >
+                                        <div
+                                            className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2 ${messageBgStyle(message.sender)}`}
+                                        >
+                                            <p>{message.message}</p>
+                                            <p className="text-xs mt-1 opacity-70">
+                                                {new Date(message.timestamp).toLocaleTimeString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <form
+                                onSubmit={handleSendMessage}
+                                className={`p-4 border-t ${borderStyle}`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}
+                                    >
+                                        <Smile size={24} />
+                                    </button>
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        placeholder="Type a message..."
+                                        className={inputStyle}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                                    >
+                                        <Send size={24} />
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    )}
+                </div>
             </div>
-          </form>
-        </div>
-      </div>
-    </motion.div>
-  );
+        </motion.div>
+    );
 }

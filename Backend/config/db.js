@@ -17,6 +17,10 @@ const reviewDB = mongoose.createConnection(process.env.REVIEW_DB_URI, {
     serverSelectionTimeoutMS: 30000, // Increase timeout to 30s
     socketTimeoutMS: 45000, // Increase socket timeout
 });
+const chatDB = mongoose.createConnection(process.env.CHAT_DB_URI, {
+    serverSelectionTimeoutMS: 30000, // Increase timeout to 30s
+    socketTimeoutMS: 45000, // Increase socket timeout
+});
 // ✅ Log successful connections
 userDB.on("connected", () => console.log("✅ User Database Connected"));
 userDB.on("error", err => console.error("❌ User Database Connection Failed:", err));
@@ -29,4 +33,8 @@ requestDB.on("error", err => console.error("❌ requestDB Connection Failed:", e
 
 reviewDB.on("connected", () => console.log("✅ reviewDB Connected"));
 reviewDB.on("error", err => console.error("❌ reviewDB Connection Failed:", err));
-module.exports = { userDB, servicemanDB,requestDB,reviewDB};
+
+
+chatDB.on("connected", () => console.log("✅ chatDB Connected"));
+chatDB.on("error", err => console.error("❌ chatDB Connection Failed:", err));
+module.exports = { userDB, servicemanDB,requestDB,reviewDB,chatDB};

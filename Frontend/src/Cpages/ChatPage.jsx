@@ -1,140 +1,284 @@
-import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Paperclip, Image, File } from "lucide-react";
+// frontend/components/UserChat.js
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import {
+    Send,
+    Search,
+    Phone,
+    Video,
+    MoreVertical,
+    Smile,
+    ArrowLeft,
+} from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
+import Api from "../Api/capi";
+import { io } from "socket.io-client";
 
-const ChatPage = () => {
-  const { conversations, darkMode } = useAppContext();
-  const [selectedConversation, setSelectedConversation] = useState(conversations[0]);
-  const [message, setMessage] = useState("");
-  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
-  const messagesEndRef = useRef(null);
+export default function Chat() {
+    const [chats, setChats] = useState([]);
+    const [selectedChat, setSelectedChat] = useState(null);
+    const [newMessage, setNewMessage] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showSidebar, setShowSidebar] = useState(true);
+    const { darkMode } = useAppContext();
+    const navigate = useNavigate();
+    const [messages, setMessages] = useState([]);
+    const socketRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [selectedConversation]);
+    useEffect(() => {
+        if (!socketRef.current) {
+            socketRef.current = io("https://smartserve-z2ms.onrender.com");
+        }
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+        if (selectedChat) {
+            socketRef.current.emit("joinRoom", selectedChat.roomId);
+            console.log(`Socket re-joined room: ${selectedChat.roomId}`);
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      setMessage("");
-      scrollToBottom();
-    }
-  };
+            socketRef.current.on("receive_message", (message) => {
+                console.log("Received message:", message);
+                setMessages((prevMessages) => [...prevMessages, message]);
+            });
+        }
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.off("receive_message");
+                if (selectedChat) {
+                    socketRef.current.emit("leaveRoom", selectedChat.roomId);
+                }
+            }
+        };
+    }, [selectedChat]);
+
+    useEffect(() => {
+        const fetchChats = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem("token");
+                const response = await Api.get("/chat/api/getrooms", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setChats(response.data);
+            } catch (error) {
+                console.error("Error fetching chats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchChats();
+    }, []);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (selectedChat) {
+                try {
+                    setLoading(true);
+                    const token = localStorage.getItem("token");
+                    const response = await Api.get(`/chat/api/messages/${selectedChat.roomId}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setMessages(response.data);
+                } catch (error) {
+                    console.error("Error fetching messages:", error);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setMessages([]);
+            }
+        };
+        fetchMessages();
+    }, [selectedChat]);
+
+    const filteredChats = chats.filter((chat) =>
+        chat.servicemanname.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleSendMessage = async (e) => {
       e.preventDefault();
-      handleSendMessage();
-    }
+      if (!newMessage.trim() || !selectedChat) return;
+  
+      try {
+          const token = localStorage.getItem("token");
+          const response = await Api.post(
+              `/chat/api/send/${selectedChat.roomId}`,
+              {
+                  message: newMessage,
+                  servicemanId: selectedChat.servicemanId,
+              },
+              {
+                  headers: { Authorization: `Bearer ${token}` },
+              }
+          );
+  
+          setNewMessage("");
+  
+          // Add the sent message to the local messages state
+          setMessages((prevMessages) => [...prevMessages, response.data]); // response.data is now the message object
+      } catch (error) {
+          console.error("Error sending message:", error);
+      }
   };
+  
 
-  return (
-    <div className="container mx-auto h-[calc(100vh-120px)]">
-      <h1 className={`text-3xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"}`}>Messages</h1>
+    const chatContainerClass = `${darkMode ? "bg-gray-800" : "bg-white"} rounded-2xl shadow-lg h-full flex overflow-hidden`;
+    const textStyle = darkMode ? "text-white" : "text-gray-900";
+    const mutedTextStyle = darkMode ? "text-gray-400" : "text-gray-500";
+    const iconStyle = darkMode ? "text-gray-400" : "text-gray-500";
+    const inputStyle = `w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"}`;
+    const borderStyle = darkMode ? "border-gray-700" : "border-gray-200";
+    const hoverStyle = darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100";
+    const selectedChatStyle = darkMode ? "bg-gray-700" : "bg-gray-100";
+    const messageBgStyle = (sender) => (sender === "user" ? (darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900") : "bg-blue-500 text-white");
 
-      <div className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 h-full ${darkMode ? "text-white" : "text-gray-800"}`}>
-        {/* Conversations List */}
-        <div className={`md:col-span-1 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg overflow-hidden`}>
-          <div className={`p-4 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-            <h2 className="font-semibold">Recent Conversations</h2>
-          </div>
-          <div className="overflow-y-auto h-[calc(100%-60px)]">
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`
-                  p-4 cursor-pointer transition-colors duration-200
-                  ${selectedConversation.id === conversation.id 
-                    ? darkMode ? "bg-gray-700" : "bg-indigo-50" 
-                    : darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"}
-                  ${conversation.id !== conversations[conversations.length - 1].id 
-                    ? darkMode ? "border-b border-gray-700" : "border-b border-gray-200" 
-                    : ""}
-                `}
-                onClick={() => setSelectedConversation(conversation)}
-              >
-                <div className="flex items-center">
-                  <div className="relative">
-                    <img src={conversation.participantAvatar} alt={conversation.participantName} className="w-10 h-10 rounded-full object-cover" />
-                    {conversation.unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                        {conversation.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  <div className="ml-3 flex-1 overflow-hidden">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-medium truncate">{conversation.participantName}</h3>
-                      <span className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{conversation.lastMessageTime.split(" ")[0]}</span>
-                    </div>
-                    <p className={`text-sm truncate ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{conversation.lastMessage}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    if (loading) {
+      return <div>Loading...</div>; // Simple loading indicator
+    }
 
-        {/* Chat Area */}
-        <div className="md:col-span-2 lg:col-span-3 flex flex-col h-full">
-          {selectedConversation ? (
-            <>
-              {/* Chat Header */}
-              <div className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-t-xl shadow-sm flex items-center`}>
-                <img src={selectedConversation.participantAvatar} alt={selectedConversation.participantName} className="w-10 h-10 rounded-full object-cover mr-3" />
-                <div>
-                  <h3 className="font-medium">{selectedConversation.participantName}</h3>
-                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Online</p>
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className={`flex-1 p-4 overflow-y-auto ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
-                <div className="space-y-4">
-                  {selectedConversation.messages.map((msg) => {
-                    const isCurrentUser = msg.senderId === "user1";
-                    return (
-                      <div key={msg.id} className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                        <div className="flex max-w-[80%]">
-                          {!isCurrentUser && <img src={msg.senderAvatar} alt={msg.senderName} className="w-8 h-8 rounded-full object-cover mr-2 self-end" />}
-                          <div>
-                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`rounded-lg p-3 ${isCurrentUser ? darkMode ? "bg-indigo-600 text-white" : "bg-indigo-500 text-white" : darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"}`}>
-                              <p className="text-sm">{msg.content}</p>
-                            </motion.div>
-                            <p className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{msg.timestamp.split(" ")[1]}</p>
-                          </div>
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-6xl mx-auto h-[calc(100vh-8rem)]"
+        >
+            <div className={chatContainerClass}>
+                <div
+                    className={`w-full sm:w-80 border-r ${borderStyle} flex flex-col ${showSidebar ? "block" : "hidden sm:block"}`}
+                >
+                    <div className="p-4">
+                        <div className="relative">
+                            <Search
+                                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${iconStyle}`}
+                                size={20}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Search conversations..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className={inputStyle}
+                            />
                         </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {filteredChats.map((chat) => (
+                            <div
+                                key={chat.roomId}
+                                onClick={() => {
+                                    setSelectedChat(chat);
+                                    setShowSidebar(false);
+                                    navigate(`/client/chat/${chat.roomId}`);
+                                }}
+                                className={`p-4 cursor-pointer transition-colors flex items-center gap-3 ${selectedChat?.roomId === chat.roomId ? selectedChatStyle : ""} ${hoverStyle}`}
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={chat.servicemanPhoto}
+                                        alt={chat.servicemanname}
+                                        className="w-12 h-12 rounded-full object-cover"
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start">
+                                        <h3 className={`font-semibold truncate ${textStyle}`}>
+                                            {chat.servicemanname}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-              </div>
+                <div
+                    className={`flex-1 flex flex-col ${!showSidebar ? "block" : "hidden sm:block"}`}
+                >
+                    {selectedChat && (
+                        <>
+                            <div
+                                className={`p-4 border-b ${borderStyle} flex justify-between items-center`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setShowSidebar(true)}
+                                        className={`sm:hidden p-2 ${hoverStyle} rounded-lg ${iconStyle}`}
+                                    >
+                                        <ArrowLeft size={20} />
+                                    </button>
+                                    <img
+                                        src={selectedChat.servicemanPhoto}
+                                        alt={selectedChat.servicemanname}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                    <div>
+                                        <h2 className={`font-semibold ${textStyle}`}>
+                                            {selectedChat.servicemanname}
+                                        </h2>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 sm:gap-4">
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <Phone size={20} />
+                                    </button>
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <Video size={20} />
+                                    </button>
+                                    <button className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}>
+                                        <MoreVertical size={20} />
+                                    </button>
+                                </div>
+                            </div>
 
-              {/* Message Input */}
-              <div className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-b-xl shadow-sm`}>
-                <div className="flex items-center">
-                  <button onClick={handleSendMessage} className={`p-3 rounded-full ${message.trim() ? "bg-indigo-600 hover:bg-indigo-700 text-white" : darkMode ? "bg-gray-700 text-gray-400" : "bg-gray-200 text-gray-500"}`} disabled={!message.trim()}>
-                    <Send size={20} />
-                  </button>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {messages.map((message, index) => (
+                                    <div
+                                        key={index}
+                                        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                                    >
+                                        <div
+                                            className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2 ${messageBgStyle(message.sender)}`}
+                                        >
+                                            <p>{message.message}</p>
+                                            <p className="text-xs mt-1 opacity-70">
+                                                {new Date(message.timestamp).toLocaleTimeString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <form
+                                onSubmit={handleSendMessage}
+                                className={`p-4 border-t ${borderStyle}`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        className={`p-2 ${hoverStyle} rounded-full ${iconStyle}`}
+                                    >
+                                        <Smile size={24} />
+                                    </button>
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        placeholder="Type a message..."
+                                        className={inputStyle}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                                    >
+                                        <Send size={24} />
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    )}
                 </div>
-              </div>
-            </>
-          ) : (
-            <div className={`flex-1 flex items-center justify-center ${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl`}>
-              <p className={`${darkMode ? "text-gray-400" : "text-gray-500"}`}>Select a conversation to start chatting</p>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ChatPage;
+        </motion.div>
+    );
+}

@@ -35,6 +35,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="requests" element={<Requests />} />
           <Route path="chat" element={<Chat />} />
+          <Route path="chat/:roomId" element={<Chat />} />
           <Route path="payments" element={<Payments />} />
           <Route path="reviews" element={<Reviews />} />
           <Route path="membership" element={<Membership />} />
@@ -45,6 +46,7 @@ function App() {
   <Route element={<Client />}> {/* Wrap all routes inside Client */}
     <Route index element={<ExplorePage />} />
     <Route path="explore" element={<ExplorePage />} />
+    <Route path="chat/:roomId" element={<ChatPage />} />
     <Route path="chat" element={<ChatPage />} />
     <Route path="reviews" element={<ReviewsPage />} />
     <Route path="history" element={<HistoryPage />} />
