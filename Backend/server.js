@@ -22,7 +22,7 @@ const io = new Server(server, {
     cors: {
         origin: [
             "http://localhost:5173",
-            "https://yourfrontenddomain.com"
+            "https://smartserve-z2ms.onrender.com",
         ],
         methods: ["GET", "POST"],
         credentials: true
@@ -40,6 +40,7 @@ console.log("chatDB Connection Status:", chatDB.readyState);
 // CORS Configuration
 const allowedOrigins = [
     "http://localhost:5173",
+    "https://smartserve-z2ms.onrender.com",
     
 ];
 
