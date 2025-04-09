@@ -9,11 +9,23 @@ import {
     MoreVertical,
     Smile,
     ArrowLeft,
+    MessageSquarePlus,
+    Inbox
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Api from "../../Api/capi";
 import { io } from "socket.io-client";
 import { useTheme } from "../hooks/useTheme";
+
+const emptyChatListVariants = {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeInOut", delay: 0.2 } },
+};
+
+const noChatSelectedVariants = {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeInOut", delay: 0.2 } },
+};
 
 export default function Chat() {
     const [chats, setChats] = useState([]);
@@ -84,12 +96,12 @@ export default function Chat() {
                 navigate("/service/chat");
                 return;
             }
-        } else if (chats.length > 0) {
+        } else if (chats.length > 0 && !selectedChat) {
             setSelectedChat(chats[0]);
-        } else {
+        } else if (chats.length === 0) {
             setSelectedChat(null);
         }
-    }, [chats, routeRoomId, navigate]);
+    }, [chats, routeRoomId, navigate, selectedChat]);
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -121,29 +133,29 @@ export default function Chat() {
     );
 
     const handleSendMessage = async (e) => {
-      e.preventDefault();
-      if (!newMessage.trim() || !selectedChat) return;
-    
-      try {
-          const token = localStorage.getItem("token");
-          const response = await Api.post(
-              `/chat/api/serviceman/send/${selectedChat.roomId}`,
-              {
-                  message: newMessage,
-              },
-              {
-                  headers: { Authorization: `Bearer ${token}` },
-              }
-          );
-    
-          setNewMessage("");
-          setMessages((prevMessages) => [
-              ...prevMessages,
-              response.data,
-          ]);
-      } catch (error) {
-          console.error("Error sending message:", error);
-      }
+        e.preventDefault();
+        if (!newMessage.trim() || !selectedChat) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            const response = await Api.post(
+                `/chat/api/serviceman/send/${selectedChat.roomId}`,
+                {
+                    message: newMessage,
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            setNewMessage("");
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                response.data,
+            ]);
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
     };
     const chatContainerClass = `${darkMode ? "bg-gray-800" : "bg-white"} rounded-2xl shadow-lg h-full flex overflow-hidden`;
     const textStyle = darkMode ? "text-white" : "text-gray-900";
@@ -156,7 +168,7 @@ export default function Chat() {
     const messageBgStyle = (sender) => (sender === "serviceman" ? "bg-blue-500 text-white" : darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900");
 
     if (loading) {
-        return <div>Loading...</div>; // Simple loading indicator
+        return <div className={`max-w-6xl mx-auto h-[calc(100vh-8rem)] flex justify-center items-center ${textStyle}`}>Loading chats...</div>;
     }
 
     return (
@@ -185,38 +197,71 @@ export default function Chat() {
                         </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
-                        {filteredChats.map((chat) => (
-                            <div
-                                key={chat.roomId}
-                                onClick={() => {
-                                    setSelectedChat(chat);
-                                    setShowSidebar(false);
-                                    navigate(`/service/chat/${chat.roomId}`);
-                                }}
-                                className={`p-4 cursor-pointer transition-colors flex items-center gap-3 ${selectedChat?.roomId === chat.roomId ? selectedChatStyle : ""} ${hoverStyle}`}
+                        {chats.length === 0 ? (
+                            <motion.div
+                                variants={emptyChatListVariants}
+                                initial="initial"
+                                animate="animate"
+                                className="flex flex-col justify-center items-center p-6"
                             >
-                                <div className="relative">
-                                    <img
-                                        src={chat.clientPhoto}
-                                        alt={chat.clientname}
-                                        className="w-12 h-12 rounded-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className={`font-semibold truncate ${textStyle}`}>
-                                            {chat.clientname}
-                                        </h3>
+                                <Inbox size={48} className={iconStyle} />
+                                <p className={`mt-3 ${mutedTextStyle} text-center`}>No chats available yet.</p>
+                            </motion.div>
+                        ) : filteredChats.length === 0 && searchTerm ? (
+                            <div className="flex flex-col justify-center items-center p-6">
+                                <Search size={48} className={iconStyle} />
+                                <p className={`mt-3 ${mutedTextStyle} text-center`}>No chats found for "{searchTerm}".</p>
+                            </div>
+                        ) : (
+                            filteredChats.map((chat) => (
+                                <div
+                                    key={chat.roomId}
+                                    onClick={() => {
+                                        setSelectedChat(chat);
+                                        setShowSidebar(false);
+                                        navigate(`/service/chat/${chat.roomId}`);
+                                    }}
+                                    className={`p-4 cursor-pointer transition-colors flex items-center gap-3 ${selectedChat?.roomId === chat.roomId ? selectedChatStyle : ""} ${hoverStyle}`}
+                                >
+                                    <div className="relative">
+                                        <img
+                                            src={chat.clientPhoto}
+                                            alt={chat.clientname}
+                                            className="w-12 h-12 rounded-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className={`font-semibold truncate ${textStyle}`}>
+                                                {chat.clientname}
+                                            </h3>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
                 <div
-                    className={`flex-1 flex flex-col ${!showSidebar ? "block" : "hidden sm:block"}`}
+                    className={`flex-1 flex flex-col ${!showSidebar ? "block" : "hidden sm:block"} ${chats.length === 0 ? "justify-center items-center" : ""}`}
                 >
-                    {selectedChat && (
+                    {!selectedChat ? (
+                        <motion.div
+                            variants={noChatSelectedVariants}
+                            initial="initial"
+                            animate="animate"
+                            className="flex flex-col justify-center items-center h-full p-6"
+                        >
+                            <MessageSquarePlus size={60} className={iconStyle} />
+                            <p className={`mt-3 ${mutedTextStyle} text-center text-lg`}>Select a chat to start messaging.</p>
+                            {chats.length > 0 && (
+                                <p className={`mt-1 ${mutedTextStyle} text-center text-sm`}>Click on a conversation in the sidebar to view messages.</p>
+                            )}
+                            {chats.length === 0 && (
+                                <p className={`mt-1 ${mutedTextStyle} text-center text-sm`}>Once a client initiates a chat, it will appear here.</p>
+                            )}
+                        </motion.div>
+                    ) : (
                         <>
                             <div
                                 className={`p-4 border-b ${borderStyle} flex justify-between items-center`}

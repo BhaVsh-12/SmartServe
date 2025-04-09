@@ -24,7 +24,7 @@ function App() {
   return (
     <>
       {/* ✅ Place Toaster outside Routes */}
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" />
 
       <Routes>
         <Route path="/" element={<Home />} />

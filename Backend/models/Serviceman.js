@@ -30,9 +30,59 @@ const ServicemanSchema = new mongoose.Schema({
         rating: { type: Number, default: 0, min: 0, max: 5 }, // Review rating (0-5)
         comment: { type: String, default: "" },
         date: { type: Date, default: Date.now },
-    }]
+    }],
+    basic:{
+        includeService: [
+            {
+              service: { type: String, default: "" },
+              time: { type: String, default: "" },
+              description: { type: String, default: "" }
+            }
+          ],
+        frquency:{type:String,default:""},
+        Response:{type:String,default:""},
+        benefits:[{type:String,default:""}],
+        mprice:{type:Number,default:0},
+        yprice:{type:Number,default:0},
+        savepercentage:{type:Number,default:0}, // Corrected type
+    },
+    professional:{
+        includeService: [
+            {
+              service: { type: String, default: "" },
+              time: { type: String, default: "" },
+              description: { type: String, default: "" }
+            }
+          ],
+        frquency:{type:String,default:""},
+        Response:{type:String,default:""},
+        benefits:[{type:String,default:""}],
+        mprice:{type:Number,default:0},
+        yprice:{type:Number,default:0},
+        savepercentage:{type:Number,default:0}, // Corrected type
+    },
+    elite:{
+        includeService: [
+            {
+              service: { type: String, default: "" },
+              time: { type: String, default: "" },
+              description: { type: String, default: "" }
+            }
+          ],
+          
+        frquency:{type:String,default:""},
+        Response:{type:String,default:""},
+        benefits:[{type:String,default:""}],
+        mprice:{type:Number,default:0},
+        yprice:{type:Number,default:0},
+        savepercentage:{type:Number,default:0}, // Corrected type
+    },
+    membership:{type:String,default:"onetime",enum:["onetime","elite","professional","basic"]},
+    membershipStatus:{type:String,default:"inactive",enum:["active","inactive"]},
+    membershipStartDate:{type:Date,default:Date.now},
+    membershipEndDate:{type:Date,default:Date.now},
+    membershipMY:{type:String,default:"monthly",enum:["monthly","yearly"]},
 }, { timestamps: true });
-
 const Serviceman = servicemanDB.model("Serviceman", ServicemanSchema);
 console.log("Debug: Serviceman.js: Serviceman model created:", Serviceman);
 module.exports = Serviceman;

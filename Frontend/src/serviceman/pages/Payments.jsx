@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import api from "../../Api/capi";
 import { useTheme } from "../hooks/useTheme";
-
+import { FaRupeeSign } from "react-icons/fa";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -165,10 +165,10 @@ const PaymentHistory = () => {
           >
             <div className="flex items-center justify-between">
               <h3 className={`text-lg font-medium ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>Total Amount</h3>
-              <DollarSign className={`h-5 w-5 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
+              <FaRupeeSign className={`h-5 w-5 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
             </div>
             <p className={`mt-2 text-3xl font-bold ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              ${totalAmount.toFixed(2)}
+              {totalAmount.toFixed(2)} ₹
             </p>
           </motion.div>
 
@@ -182,7 +182,7 @@ const PaymentHistory = () => {
               <CheckCircle2 className="h-5 w-5 text-green-500" />
             </div>
             <p className="mt-2 text-3xl font-bold text-green-600">
-              ${completedAmount.toFixed(2)}
+              {completedAmount.toFixed(2)} ₹
             </p>
           </motion.div>
 
@@ -196,7 +196,7 @@ const PaymentHistory = () => {
               <Clock className="h-5 w-5 text-yellow-500" />
             </div>
             <p className="mt-2 text-3xl font-bold text-yellow-600">
-              ${pendingAmount.toFixed(2)}
+            {pendingAmount.toFixed(2)} ₹
             </p>
           </motion.div>
         </motion.div>
@@ -312,7 +312,7 @@ const PaymentHistory = () => {
                       </div>
                       <div className="sm:col-span-2 mb-2 sm:mb-0">
                         <div className={`text-sm font-medium ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          ${payment.amount.toFixed(2)}
+                          {payment.amount.toFixed(2)} ₹
                         </div>
                       </div>
                       <div className="sm:col-span-2 mb-2 sm:mb-0">

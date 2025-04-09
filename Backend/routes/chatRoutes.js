@@ -13,16 +13,17 @@ router.post("/send/:roomId", protectRoute("client"), async (req, res) => {
         const { servicemanId, message } = req.body;
         const userId = req.user.id;
         const sender = "user";
-        console.log("Received message data:", { roomId, userId, servicemanId, message, sender });
 
         const chat = await Chat.findOne({ roomId });
 
         if (chat) {
-            chat.messages.push({ sender, message, timestamp: new Date() });
+            const newMsg = { sender, message, timestamp: new Date() };
+            chat.messages.push(newMsg);
             await chat.save();
-            const newMessage = chat.messages[chat.messages.length - 1]; // Get the newly added message
-            req.io.to(roomId).emit("receive_message", newMessage);
-            res.status(201).json(newMessage); // Send only the new message
+            
+            const messageWithRoom = { ...newMsg, roomId };
+            req.io.to(roomId).emit("receive_message", messageWithRoom);
+            res.status(201).json(messageWithRoom);
         } else {
             const newChat = new Chat({
                 roomId,
@@ -32,9 +33,12 @@ router.post("/send/:roomId", protectRoute("client"), async (req, res) => {
             });
 
             await newChat.save();
-            const newMessage = newChat.messages[0]; // Get the first message
-            req.io.to(roomId).emit("receive_message", newMessage);
-            res.status(201).json(newMessage); // Send only the new message
+            const messageWithRoom = { 
+                ...newChat.messages[0], 
+                roomId 
+            };
+            req.io.to(roomId).emit("receive_message", messageWithRoom);
+            res.status(201).json(messageWithRoom);
         }
     } catch (error) {
         console.error("Error sending message:", error);
@@ -147,11 +151,13 @@ router.post("/serviceman/send/:roomId", protectRoute("serviceman"), async (req, 
 
         const chat = await Chat.findOne({ roomId });
         if (chat) {
-            chat.messages.push({ sender, message, timestamp: new Date() });
+            const newMsg = { sender, message, timestamp: new Date() };
+            chat.messages.push(newMsg);
             await chat.save();
-            const newMessage = chat.messages[chat.messages.length - 1];
-            req.io.to(roomId).emit("receive_message", newMessage);
-            res.status(201).json(newMessage); // Send only the new message
+            
+            const messageWithRoom = { ...newMsg, roomId };
+            req.io.to(roomId).emit("receive_message", messageWithRoom);
+            res.status(201).json(messageWithRoom);
         } else {
             res.status(404).json({ message: "Room not found" });
         }

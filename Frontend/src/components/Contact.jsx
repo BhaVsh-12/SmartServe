@@ -1,23 +1,75 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import the CSS
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
+
+    // Simulate a successful submission (replace with your actual API call)
+    try {
+      //   const response = await fetch('/your-api-endpoint', { // Replace with your API endpoint
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify(formData),
+      //   });
+
+      //   if (!response.ok) {
+      //     throw new Error('Failed to send message');
+      //   }
+
+      //   const data = await response.json();
+      //   console.log('Success:', data);
+
+      // Simulate success for now:
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
+
+      toast.success('Thanks for your interaction! We will get in touch with you soon.', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+
+      // Clear the form
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to send message. Please try again later.', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -25,7 +77,9 @@ const Contact = () => {
     <section id="contact" className="section-padding bg-white ">
       <div className="max-w-7xl mx-auto container-padding">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Get in Touch</h2>
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+            Get in Touch
+          </h2>
           <p className="mt-4 text-xl text-gray-600">We'd love to hear from you</p>
         </div>
 
@@ -39,7 +93,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">Phone</h3>
-                    <p className="mt-1 text-gray-600">+1 (555) 123-4567</p>
+                    <p className="mt-1 text-gray-600">+91 7756856405</p>
                   </div>
                 </div>
 
@@ -49,7 +103,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">Email</h3>
-                    <p className="mt-1 text-gray-600">contact@example.com</p>
+                    <p className="mt-1 text-gray-600">bhaveshbari0402@gmail.com</p>
                   </div>
                 </div>
 
@@ -59,7 +113,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">Address</h3>
-                    <p className="mt-1 text-gray-600">123 Tech Street, Silicon Valley, CA 94025</p>
+                    <p className="mt-1 text-gray-600">Narhe ,pune</p>
                   </div>
                 </div>
               </div>
@@ -70,7 +124,10 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Name
                   </label>
                   <input
@@ -84,7 +141,10 @@ const Contact = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Email
                   </label>
                   <input
@@ -100,7 +160,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Subject
                 </label>
                 <input
@@ -115,7 +178,10 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Message
                 </label>
                 <textarea
@@ -142,6 +208,7 @@ const Contact = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </section>
   );
 };

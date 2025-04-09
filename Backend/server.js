@@ -22,10 +22,12 @@ const io = new Server(server, {
     cors: {
         origin: [
             "http://localhost:5173",
-            "https://smart-serve-coral.vercel.app",
+            "https://yourfrontenddomain.com"
         ],
         methods: ["GET", "POST"],
+        credentials: true
     },
+    transports: ['websocket', 'polling']
 });
 
 // Debug: Check database connection status
@@ -38,7 +40,7 @@ console.log("chatDB Connection Status:", chatDB.readyState);
 // CORS Configuration
 const allowedOrigins = [
     "http://localhost:5173",
-    "https://smart-serve-coral.vercel.app",
+    
 ];
 
 const corsOptions = {
@@ -96,7 +98,8 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send_message", (data) => {
-        socket.to(data.roomId).emit("receive_message", data);
+        console.log("Sending message to room:", data.roomId);
+        socket.to(data.roomId).emit("receive_message", data.message);
     });
 
     socket.on("disconnect", () => {

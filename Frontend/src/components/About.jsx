@@ -10,7 +10,7 @@ const AboutPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight mb-4">
-              About ServiceTrack
+              About SmartServe
             </h1>
             <p className="text-xl max-w-3xl mx-auto">
               Revolutionizing the way clients connect with service providers through innovative technology.
@@ -25,7 +25,7 @@ const AboutPage = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Our Story</h2>
             <p className="mt-4 text-lg text-gray-600">
-            ServiceTrack was born from a simple observation: finding reliable service providers is unnecessarily difficult, pricing lacks transparency, and the entire process is filled with inefficiencies.
+            SmartServe was born from a simple observation: finding reliable service providers is unnecessarily difficult, pricing lacks transparency, and the entire process is filled with inefficiencies.
 
 We set out to create a platform that would revolutionize service management by connecting clients with verified professionals through cutting-edge technology, ensuring transparency, accountability, and seamless experiences for everyone involved.
             </p>

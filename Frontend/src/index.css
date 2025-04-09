@@ -53,4 +53,11 @@ html, body {
 html::-webkit-scrollbar, body::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Edge */
 }
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}

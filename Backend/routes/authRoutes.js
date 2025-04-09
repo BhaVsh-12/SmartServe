@@ -197,5 +197,18 @@ router.post("/uploadPhoto", protectRoute("client"), upload.single("profilePhoto"
         res.status(500).json({ message: "Failed to update profile photo" });
     }
 });
-
+router.get("/getMembership/:servicemanId", protectRoute("client"), async (req, res) => {
+    try {
+        const {servicemanId}=req.params;
+        const serviceman = await Serviceman.findById(servicemanId).select("basic professional elite");
+        if (!serviceman) {
+            return res.status(404).json({ message: "Serviceman not found" });
+        }
+        res.status(200).json(serviceman);
+        console.log(serviceman);
+    } catch (error) {
+        console.error("Error fetching membership tiers:", error);
+        res.status(500).json({ message: "Failed to fetch membership tiers", error: error.message });
+    }
+});
 module.exports = router;

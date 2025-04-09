@@ -25,7 +25,7 @@ const FeaturesPage = () => {
             { icon: <Search />, title: "Explore & Search", desc: "Find the perfect service provider with advanced filters." },
             { icon: <Star />, title: "Ratings & Feedback", desc: "Read and leave feedback after service completion." },
             { icon: <MessageCircle />, title: "Direct Chat", desc: "Communicate directly with service providers." },
-            { icon: <MapPin />, title: "Real-time Tracking", desc: "Track your service provider's status." },
+            { icon: <Settings />, title: "Profile Customization", desc: "Showcase your profile professionally." },
             { icon: <CreditCard />, title: "Secure Payments", desc: "Pay securely through our platform." },
             { icon: <Clock />, title: "Booking History", desc: "Manage your complete booking history." },
           ],

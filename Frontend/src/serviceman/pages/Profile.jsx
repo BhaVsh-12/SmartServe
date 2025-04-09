@@ -4,6 +4,7 @@ import { Camera, Save, MapPin, DollarSign, Clock, Briefcase, User2, Mail, Buildi
 import toast from 'react-hot-toast';
 import api from "../../Api/capi";
 import { useTheme } from "../hooks/useTheme";
+import { FaRupeeSign } from "react-icons/fa";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -326,8 +327,8 @@ export default function Profile() {
 
                 <div>
                   <label className={`flex items-center text-sm font-medium mb-1 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <DollarSign size={16} className="mr-2 text-indigo-500" />
-                    Hourly Rate
+                    <FaRupeeSign size={16} className="mr-2 text-indigo-500" />
+                    OneTime Charges
                   </label>
                   <input
                     type="number"

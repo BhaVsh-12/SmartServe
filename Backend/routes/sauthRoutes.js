@@ -145,5 +145,76 @@ router.post("/uploadPhoto", protectRoute("serviceman"), upload.single("profilePh
     }
 });
 
+// ✅ Update Serviceman Membership Tiers
+router.put("/updateMembership", protectRoute("serviceman"), async (req, res) => {
+    try {
+        const { basic, professional, elite } = req.body;
+        const serviceman = await Serviceman.findById(req.user.id);
 
+        if (!serviceman) {
+            return res.status(404).json({ message: "Serviceman not found" });
+        }
+
+        const calculateSavePercentage = (monthlyPrice, yearlyPrice) => {
+            if (monthlyPrice > 0 && yearlyPrice > 0) {
+                const expectedYearly = monthlyPrice * 12;
+                const savings = expectedYearly - yearlyPrice;
+                return parseFloat(((savings / expectedYearly) * 100).toFixed(2));
+            }
+            return 0;
+        };
+
+        const updateTierData = (existingTier, newTierData) => {
+            if (!newTierData) return existingTier; // No update provided
+
+            const updatedTier = { ...existingTier, ...newTierData };
+
+            // Ensure includeService and benefits are arrays if provided
+            if (newTierData.includeService !== undefined && !Array.isArray(newTierData.includeService)) {
+                updatedTier.includeService = []; // Or handle the error as needed
+            }
+            if (newTierData.benefits !== undefined && !Array.isArray(newTierData.benefits)) {
+                updatedTier.benefits = []; // Or handle the error as needed
+            }
+
+            // Calculate save percentage if both monthly and yearly prices are provided
+            if (updatedTier.mprice !== undefined && updatedTier.yprice !== undefined) {
+                updatedTier.savepercentage = calculateSavePercentage(updatedTier.mprice, updatedTier.yprice);
+            }
+
+            return updatedTier;
+        };
+
+        if (basic !== undefined) {
+            serviceman.basic = updateTierData(serviceman.basic || {}, basic);
+        }
+        if (professional !== undefined) {
+            serviceman.professional = updateTierData(serviceman.professional || {}, professional);
+        }
+        if (elite !== undefined) {
+            serviceman.elite = updateTierData(serviceman.elite || {}, elite);
+        }
+
+        await serviceman.save();
+        res.status(200).json({ message: "Membership tiers updated successfully", serviceman });
+
+    } catch (error) {
+        console.error("Membership tier update error:", error);
+        res.status(500).json({ message: "Failed to update membership tiers", error: error.message });
+    }
+});
+
+// ✅ Get Serviceman Membership Tiers
+router.get("/getMembership", protectRoute("serviceman"), async (req, res) => {
+    try {
+        const serviceman = await Serviceman.findById(req.user.id).select("basic professional elite");
+        if (!serviceman) {
+            return res.status(404).json({ message: "Serviceman not found" });
+        }
+        res.status(200).json(serviceman);
+    } catch (error) {
+        console.error("Error fetching membership tiers:", error);
+        res.status(500).json({ message: "Failed to fetch membership tiers", error: error.message });
+    }
+});
 module.exports = router;
