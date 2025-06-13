@@ -70,7 +70,9 @@ app.use("/user/api/auth", authRoutes);
 app.get("/user/api/protected", protectRoute("client"), (req, res) => {
     res.json({ message: "Access granted to client protected data" });
 });
-
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
 app.use("/serviceman/api/auth", sauthRoutes);
 app.get("/serviceman/api/protected", protectRoute("serviceman"), (req, res) => {
     res.json({ message: "Access granted to serviceman protected data" });
