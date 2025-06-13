@@ -170,9 +170,7 @@ const SubcategoryItem = ({ service, onSelect }) => {
                     {service.title}
                 </span>
             </div>
-            <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                {service.providerCount} Providers
-            </span>
+
         </motion.div>
     );
 };
