@@ -8,20 +8,10 @@ const jwt = require("jsonwebtoken");
 const protectRoute = require("../middleware/authMiddleware");
 const router = express.Router();
 const multer = require("multer");
+const cloudinary = require("../config/cloudinary"); 
+const { Readable } = require("stream"); 
+const upload = multer({ storage: multer.memoryStorage() }); 
 
-// Configure Multer for Image Uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
-});
-
-const upload = multer({ storage });
-
-// Register User
 router.post("/signup", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -117,7 +107,7 @@ router.get("/getServiceman/:id", protectRoute("client"), async (req, res) => {
 });
 router.get("/getreviews/:id", protectRoute("client"), async (req, res) => {
     try {
-        const { id: servicemanId } = req.params; // Corrected parameter name to 'id'
+        const { id: servicemanId } = req.params; 
 
         if (!servicemanId) {
             return res.status(400).json({ message: "Serviceman ID is required" });
@@ -134,7 +124,7 @@ router.get("/getreviews/:id", protectRoute("client"), async (req, res) => {
         
         res.status(200).json(reviews);
     } catch (error) {
-        console.error("Error fetching serviceman reviews:", error); // Improved error message
+        console.error("Error fetching serviceman reviews:", error); 
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -170,33 +160,53 @@ router.put("/updateProfile", protectRoute("client"), async (req, res) => {
 });
 
 // Upload User Profile Photo
-router.post("/uploadPhoto", protectRoute("client"), upload.single("profilePhoto"), async (req, res) => {
-    console.log("🖼️ File Upload Attempt:", req.file);
-
-    if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    const imageUrl = `https://smartserve-z2ms.onrender.com/uploads/${req.file.filename}`;
-
+router.post(
+  "/uploadPhoto",
+  protectRoute("client"),
+  upload.single("profilePhoto"),
+  async (req, res) => {
     try {
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user.id,
-            { profilePhoto: imageUrl },
-            { new: true, select: "-password" }
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const buffer = file.buffer;
+
+      // Upload to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "user_profiles" }, // Cloudinary folder
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
         );
+        Readable.from(buffer).pipe(stream);
+      });
 
-        if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        { profilePhoto: uploadResult.secure_url },
+        { new: true, select: "-password" }
+      );
 
-        console.log("✅ Profile photo updated in DB:", updatedUser);
-        res.json({ message: "Profile photo updated", imageUrl, user: updatedUser });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "Profile photo uploaded to Cloudinary",
+        imageUrl: uploadResult.secure_url,
+        user: updatedUser,
+      });
     } catch (error) {
-        console.error("❌ Error updating profile photo:", error);
-        res.status(500).json({ message: "Failed to update profile photo" });
+      console.error("❌ Cloudinary upload error:", error);
+      res.status(500).json({ message: "Upload failed", error: error.message });
     }
-});
+  }
+);
+
 router.get("/getMembership/:servicemanId", protectRoute("client"), async (req, res) => {
     try {
         const {servicemanId}=req.params;

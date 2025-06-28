@@ -4,11 +4,11 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Serviceman = require("../models/Serviceman");
-const protectRoute = require("../middleware/authMiddleware"); // ✅ Import authentication middleware
-
+const protectRoute = require("../middleware/authMiddleware");
 const router = express.Router();
-
-// ✅ Serviceman Signup
+const cloudinary = require("../config/cloudinary");
+const upload = require("../middleware/multer"); 
+const { Readable } = require('stream');
 router.post("/signup", async (req, res) => {
     try {
         console.log("Signup request received:", req.body);
@@ -44,7 +44,6 @@ router.post("/login", async (req, res) => {
         const isMatch = await bcrypt.compare(password, serviceman.password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-        // 🛑 Include role in token (serviceman)
         const token = jwt.sign({ id: serviceman._id, role: "serviceman" }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         res.json({ token, role: "serviceman" });
@@ -65,22 +64,23 @@ router.post("/logout", async (req, res) => {
 // ✅ Update Serviceman Profile
 router.put("/updateProfile", protectRoute("serviceman"), async (req, res) => {
     try {
-        const { fullName, serviceCategory, subCategory, availability, location, price,experience,description } = req.body;
+        const { fullName, serviceCategory, subCategory, availability, location, price, experience, description } = req.body;
         const serviceman = await Serviceman.findById(req.user.id);
         if (!serviceman) return res.status(404).json({ message: "Serviceman not found" });
 
-        // Update only provided fields
+       
         if (fullName) serviceman.fullName = fullName;
         if (serviceCategory) serviceman.serviceCategory = serviceCategory;
         if (subCategory) serviceman.subCategory = subCategory;
         if (availability !== undefined) serviceman.availability = availability;
         if (location) serviceman.location = location;
         if (price !== undefined) serviceman.price = price;
-        if(experience) serviceman.experience=experience;
-        if(description) serviceman.description=description;
+        if (experience) serviceman.experience = experience;
+        if (description) serviceman.description = description;
 
         await serviceman.save();
-        res.status(200).json({ message: "Profile updated successfully", serviceman });
+        console.log(serviceman.profilePhoto);
+        res.status(200).json({ message: "Profile updated successfully", serviceman});
 
     } catch (error) {
         console.error("Profile update error:", error);
@@ -100,52 +100,54 @@ router.get("/getProfile", protectRoute("serviceman"), async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-const multer = require("multer");
 
-// ✅ Configure Multer for Image Uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Save to 'uploads' folder
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
-    }
-});
-
-const upload = multer({ storage });
-
-// ✅ Upload Image Endpoint
-router.post("/uploadPhoto", protectRoute("serviceman"), upload.single("profilePhoto"), async (req, res) => {
-    console.log("🖼️ File Upload Attempt:", req.file);
-    
-    if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    // ✅ Generate Image URL
-    const imageUrl = `https://smartserve-z2ms.onrender.com/uploads/${req.file.filename}`;
-
+router.post(
+  "/uploadPhoto",
+  protectRoute("serviceman"),
+  upload.single("profilePhoto"), // match frontend field name
+  async (req, res) => {
     try {
-        // ✅ Update Profile Photo in Database
-        const updatedServiceman = await Serviceman.findByIdAndUpdate(
-            req.user.id, 
-            { profilePhoto: imageUrl },
-            { new: true, select: "-password" } // Return updated document without password
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const buffer = file.buffer;
+
+      // Upload buffer to Cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "servicemen_profiles" }, // Optional: custom folder in Cloudinary
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
         );
+        Readable.from(buffer).pipe(stream);
+      });
 
-        if (!updatedServiceman) {
-            return res.status(404).json({ message: "Serviceman not found" });
-        }
+      const updatedServiceman = await Serviceman.findByIdAndUpdate(
+        req.user.id,
+        { profilePhoto: uploadResult.secure_url },
+        { new: true, select: "-password" }
+      );
 
-        console.log("✅ Profile photo updated in DB:", updatedServiceman);
-        res.json({ message: "Profile photo updated", imageUrl, serviceman: updatedServiceman });
-    } catch (error) {
-        console.error("❌ Error updating profile photo:", error);
-        res.status(500).json({ message: "Failed to update profile photo" });
+      if (!updatedServiceman) {
+        return res.status(404).json({ message: "Serviceman not found" });
+      }
+
+      res.status(200).json({
+        message: "Photo uploaded to Cloudinary successfully",
+        url: uploadResult.secure_url,
+        serviceman: updatedServiceman,
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      res.status(500).json({ message: "Cloudinary upload failed", error: err.message });
     }
-});
+  }
+);
 
-// ✅ Update Serviceman Membership Tiers
 router.put("/updateMembership", protectRoute("serviceman"), async (req, res) => {
     try {
         const { basic, professional, elite } = req.body;
