@@ -79,7 +79,7 @@ export default function Profile() {
           }
         );
 
-        imageUrl = uploadRes.data.imageUrl;
+        imageUrl = uploadRes.data.url;
         console.log("✅ Uploaded Image URL:", imageUrl);
       } catch (error) {
         console.error("❌ Image Upload Failed:", error);

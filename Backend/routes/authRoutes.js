@@ -172,8 +172,6 @@ router.post(
       }
 
       const buffer = file.buffer;
-
-      // Upload to Cloudinary
       const uploadResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: "user_profiles" }, // Cloudinary folder

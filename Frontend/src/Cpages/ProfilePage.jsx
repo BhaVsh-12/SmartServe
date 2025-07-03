@@ -79,8 +79,8 @@ const ProfilePage = () => {
             "Content-Type": "multipart/form-data",
           },
         });
+imageUrl = uploadRes.data.imageUrl;
 
-        imageUrl = uploadRes.data.imageUrl;
       } catch (error) {
         toast.error("Failed to upload image.");
         return;

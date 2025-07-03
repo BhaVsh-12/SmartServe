@@ -4,13 +4,13 @@
   padding: 2rem;
   text-align: center;
 }
-/* Hide scrollbar but allow scrolling */
+
 html, body {
-  overflow-y: scroll; /* Ensure scrolling works */
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar for IE & Edge */
+  overflow-y: scroll; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
 }
 
 html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for Chrome, Safari, and Edge */
+  display: none; 
 }
