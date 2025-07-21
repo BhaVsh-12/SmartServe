@@ -130,7 +130,7 @@ router.put("/rebook",protectRoute("client"), async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-  router.get("/pendingpayments", protectRoute("client"), async (req, res) => {
+router.get("/pendingpayments", protectRoute("client"), async (req, res) => {
     try {
         const clientId = req.user.id;
         const requests = await Request.find({ clientId, paid: "unpaid" }).lean();
@@ -198,7 +198,7 @@ router.put("/payment", protectRoute("client"), async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
-  router.get("/getpayments", protectRoute("serviceman"), async (req, res) => {
+router.get("/getpayments", protectRoute("serviceman"), async (req, res) => {
     try {
       const servicemanId = req.user.id; // Assuming serviceman is logged in
       const requests = await Request.find({
@@ -212,6 +212,4 @@ router.put("/payment", protectRoute("client"), async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  
-  
 module.exports = router;

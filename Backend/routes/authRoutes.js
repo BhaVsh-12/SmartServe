@@ -11,7 +11,7 @@ const multer = require("multer");
 const cloudinary = require("../config/cloudinary"); 
 const { Readable } = require("stream"); 
 const upload = multer({ storage: multer.memoryStorage() }); 
-
+const { redisClient } = require("../config/redis")
 router.post("/signup", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -71,20 +71,18 @@ router.get("/getServicemans/:subCategory", protectRoute("client"), async (req, r
         if (!subCategory) {
             return res.status(400).json({ message: "Subcategory is required" });
         }
-
+        
         const servicemen = await Serviceman.find({ subCategory: new RegExp(`^${subCategory}$`, "i") }).select("-password");
-        res.status(200).json(servicemen);
-        if (servicemen.length === 0) {
+                if (servicemen.length === 0) {
             return res.status(404).json({ message: "No service providers found in this subcategory" });
         }
-
+        res.status(200).json(servicemen);
         
     } catch (error) {
         console.error("Error fetching servicemen:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
-
 router.get("/getServiceman/:id", protectRoute("client"), async (req, res) => {
     try {
         const { id } = req.params;
@@ -107,32 +105,51 @@ router.get("/getServiceman/:id", protectRoute("client"), async (req, res) => {
 });
 router.get("/getreviews/:id", protectRoute("client"), async (req, res) => {
     try {
-        const { id: servicemanId } = req.params; 
+        const { id: servicemanId } = req.params;
+        const cacheKey = `serviceman_reviews_${servicemanId}`;
 
         if (!servicemanId) {
             return res.status(400).json({ message: "Serviceman ID is required" });
         }
 
+        const cachedReviews = await redisClient.get(cacheKey);
+        if (cachedReviews) {
+            return res.status(200).json(JSON.parse(cachedReviews));
+        }
+
+
         const reviews = await Review.find({
             servicemanId: servicemanId,
             reviewstatus: "completed",
         });
-        
+
         if (!reviews || reviews.length === 0) {
             return res.status(404).json({ message: "No reviews available" });
         }
-        
+
+        await redisClient.set(cacheKey, JSON.stringify(reviews), 'EX', 1800);
+
         res.status(200).json(reviews);
     } catch (error) {
-        console.error("Error fetching serviceman reviews:", error); 
+        console.error("Error fetching serviceman reviews:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 
 router.get("/getProfile", protectRoute("client"), async (req, res) => {
     try {
+        const redisKey = `user_profile_${req.user.id}`;
+
+        // Try fetching from Redis
+        const cached = await redisClient.get(redisKey);
+        if (cached) return res.json(JSON.parse(cached));
+
+        // If not in cache, fetch from DB
         const user = await User.findById(req.user.id).select("-password");
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Cache it for next time (optional TTL)
+        await redisClient.set(redisKey, JSON.stringify(user), 'EX', 3600); // 1 hour TTL
 
         res.json(user);
     } catch (error) {
@@ -141,10 +158,12 @@ router.get("/getProfile", protectRoute("client"), async (req, res) => {
     }
 });
 
+
 // Update User Profile
 router.put("/updateProfile", protectRoute("client"), async (req, res) => {
     try {
         const { fullName, location } = req.body;
+
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -152,6 +171,10 @@ router.put("/updateProfile", protectRoute("client"), async (req, res) => {
         if (location) user.location = location;
 
         await user.save();
+
+        // Invalidate Redis cache
+        await redisClient.del(`user_profile_${req.user.id}`);
+
         res.status(200).json({ message: "Profile updated successfully", user });
     } catch (error) {
         console.error("Profile update error:", error);

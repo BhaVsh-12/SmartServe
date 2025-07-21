@@ -5,6 +5,7 @@ const protectRoute = require("../middleware/authMiddleware"); // ✅ Import auth
 const Request = require("../models/Request");
 const Review=require("../models/Review");
 const router = express.Router();
+const {redisClient} = require("../config/redis");
 router.post("/create", protectRoute("serviceman"), async (req, res) => {
     try {
       const { requestId } = req.body;
@@ -21,12 +22,18 @@ router.post("/create", protectRoute("serviceman"), async (req, res) => {
   router.get("/getpendingreview", protectRoute("client"), async (req, res) => {
     try {
         const clientId = req.user.id;
+        const cacheKey = `pending_reviews_${clientId}`;
+        const cachedReviews = await redisClient.get(cacheKey);
+        if (cachedReviews) {
+            console.log("Cache hit for pending reviews");
+            return res.json(JSON.parse(cachedReviews));
+        }
         const reviews = await Review.find({ clientId: clientId, reviewstatus: "pending" });
 
         if (!reviews || reviews.length === 0) {
             return res.status(404).json({ message: "No pending reviews found" }); // Improved message clarity
         }
-
+        await redisClient.set(cacheKey, JSON.stringify(reviews), 'EX', 3600); 
         res.status(200).json(reviews);
 
     } catch (error) {
@@ -67,7 +74,8 @@ router.put("/updatereview", protectRoute("client"), async (req, res) => {
 
       await serviceman.save();
       await reviewExists.save();
-
+      redisClient.del(`completed_reviews_${req.user.id}`);
+      redisClient.del(`pending_reviews_${req.user.id}`);
       res.status(200).json({ message: "Review updated successfully" });
 
   } catch (error) {
@@ -78,11 +86,17 @@ router.put("/updatereview", protectRoute("client"), async (req, res) => {
   router.get("/completedreview", protectRoute("client"), async (req, res) => {
     try {
       const clientId = req.user.id; 
+      const cacheKey = `completed_reviews_${clientId}`;
+      const cachedReviews = await redisClient.get(cacheKey);
+      if (cachedReviews) {
+        console.log("Cache hit for completed reviews");
+        return res.json(JSON.parse(cachedReviews));
+      }
       const reviews = await Review.find({ clientId: clientId ,reviewstatus:"completed"}); 
       if (!reviews || reviews.length === 0) { 
         return res.status(404).json({ message: "No reviews available" }); 
       }
-  
+      await redisClient.set(cacheKey, JSON.stringify(reviews), 'EX', 3600);
       res.status(200).json(reviews); 
   
     } catch (error) {
@@ -108,7 +122,5 @@ router.put("/updatereview", protectRoute("client"), async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-
-  
 
   module.exports = router;

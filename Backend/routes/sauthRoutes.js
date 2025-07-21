@@ -8,6 +8,7 @@ const router = express.Router();
 const cloudinary = require("../config/cloudinary");
 const upload = require("../middleware/multer"); 
 const { Readable } = require('stream');
+const { redisClient } = require("../config/redis");
 router.post("/signup", async (req, res) => {
     try {
         console.log("Signup request received:", req.body);
@@ -33,7 +34,6 @@ router.post("/signup", async (req, res) => {
     }
 });
 
-// ✅ Serviceman Login
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -51,7 +51,6 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// ✅ Serviceman Logout
 router.post("/logout", async (req, res) => {
     try {
         res.json({ message: "Logged out successfully" });
@@ -63,6 +62,7 @@ router.post("/logout", async (req, res) => {
 // ✅ Update Serviceman Profile
 router.put("/updateProfile", protectRoute("serviceman"), async (req, res) => {
     try {
+
         const { fullName, serviceCategory, subCategory, availability, location, price, experience, description } = req.body;
         const serviceman = await Serviceman.findById(req.user.id);
         if (!serviceman) return res.status(404).json({ message: "Serviceman not found" });
@@ -78,7 +78,8 @@ router.put("/updateProfile", protectRoute("serviceman"), async (req, res) => {
         if (description) serviceman.description = description;
 
         await serviceman.save();
-        console.log(serviceman.profilePhoto);
+        
+         await redisClient.del(`serviceman_profile_${req.user.id}`);
         res.status(200).json({ message: "Profile updated successfully", serviceman});
 
     } catch (error) {
@@ -90,10 +91,18 @@ router.put("/updateProfile", protectRoute("serviceman"), async (req, res) => {
 // ✅ Get Serviceman Profile
 router.get("/getProfile", protectRoute("serviceman"), async (req, res) => {
     try {
+         const cacheKey = `serviceman_profile_${req.user.id}`;
+        const cachedProfile = await redisClient.get(cacheKey);
+        if (cachedProfile) {
+            console.log("Cache hit for serviceman profile");
+            return res.json(JSON.parse(cachedProfile));
+        }
+
         const serviceman = await Serviceman.findById(req.user.id).select("-password");
         if (!serviceman) return res.status(404).json({ message: "Serviceman not found" });
 
         res.json(serviceman);
+        await redisClient.set(cacheKey, JSON.stringify(serviceman), 'EX', 3600); 
     } catch (error) {
         console.error("Profile fetch error:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -195,7 +204,7 @@ router.put("/updateMembership", protectRoute("serviceman"), async (req, res) => 
         if (elite !== undefined) {
             serviceman.elite = updateTierData(serviceman.elite || {}, elite);
         }
-
+        await redisClient.del(`serviceman_Membership_${req.user.id}`);
         await serviceman.save();
         res.status(200).json({ message: "Membership tiers updated successfully", serviceman });
 
@@ -208,10 +217,17 @@ router.put("/updateMembership", protectRoute("serviceman"), async (req, res) => 
 // ✅ Get Serviceman Membership Tiers
 router.get("/getMembership", protectRoute("serviceman"), async (req, res) => {
     try {
+         const cacheKey = `serviceman_Membership_${req.user.id}`;
+        const cachedProfile = await redisClient.get(cacheKey);
+        if (cachedProfile) {
+            console.log("Cache hit for serviceman Membership");
+            return res.json(JSON.parse(cachedProfile));
+        }
         const serviceman = await Serviceman.findById(req.user.id).select("basic professional elite");
         if (!serviceman) {
             return res.status(404).json({ message: "Serviceman not found" });
         }
+        await redisClient.set(cacheKey, JSON.stringify(serviceman), 'EX', 3600); 
         res.status(200).json(serviceman);
     } catch (error) {
         console.error("Error fetching membership tiers:", error);
