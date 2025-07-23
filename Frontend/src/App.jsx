@@ -20,6 +20,7 @@ import Reviews from "./serviceman/pages/Reviews";
 import Membership from "./serviceman/pages/Membership";
 import { Toaster } from "react-hot-toast";
 import ExploreServices from './Cpages/ExploreServices';
+import { Analytics } from "@vercel/analytics/next"
 function App() {
   return (
     <>
