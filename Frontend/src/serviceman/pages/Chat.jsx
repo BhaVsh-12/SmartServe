@@ -1,4 +1,3 @@
-// frontend/components/ServicemanChat.js
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -16,7 +15,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Api from "../../Api/capi";
 import { io } from "socket.io-client";
 import { useTheme } from "../hooks/useTheme";
-
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 const emptyChatListVariants = {
     initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeInOut", delay: 0.2 } },
@@ -27,7 +26,7 @@ const noChatSelectedVariants = {
     animate: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeInOut", delay: 0.2 } },
 };
 
-export default function Chat() {
+export default function ServicemanChat() {
     const [chats, setChats] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
     const [newMessage, setNewMessage] = useState("");
@@ -39,32 +38,48 @@ export default function Chat() {
     const { theme } = useTheme();
     const darkMode = theme === "dark";
     const socketRef = useRef(null);
+    const selectedChatRef = useRef(selectedChat); 
     const [loading, setLoading] = useState(false);
+
+
+    useEffect(() => {
+        selectedChatRef.current = selectedChat;
+    }, [selectedChat]);
 
     useEffect(() => {
         if (!socketRef.current) {
-            socketRef.current = io("https://smartserve-z2ms.onrender.com");
+            socketRef.current = io(API_BASE_URL);
         }
 
-        if (selectedChat) {
-            socketRef.current.emit("joinRoom", selectedChat.roomId);
-            console.log(`Socket re-joined room: ${selectedChat.roomId}`);
+        const socket = socketRef.current;
 
-            socketRef.current.on("receive_message", (message) => {
-                console.log("Received message:", message);
-                setMessages((prevMessages) => [...prevMessages, message]);
+       
+        socket.on("receive_message", (message) => {
+            console.log("Received message:", message);
+            setMessages((prevMessages) => {
+                const currentSelectedChat = selectedChatRef.current; 
+                if (currentSelectedChat && message.roomId === currentSelectedChat.roomId) {
+                    return [...prevMessages, message];
+                }
+                return prevMessages;
             });
-        }
+        });
 
         return () => {
-            if (socketRef.current) {
-                socketRef.current.off("receive_message");
-                if (selectedChat) {
-                    socketRef.current.emit("leaveRoom", selectedChat.roomId);
-                }
+            if (socket) {
+                socket.off("receive_message");
             }
         };
+    }, []); 
+
+    useEffect(() => {
+        const socket = socketRef.current;
+        if (socket && selectedChat) {
+            socket.emit("joinRoom", selectedChat.roomId);
+            console.log(`Socket joined room: ${selectedChat.roomId}`);
+        }
     }, [selectedChat]);
+
 
     useEffect(() => {
         const fetchChats = async () => {
@@ -86,44 +101,40 @@ export default function Chat() {
     }, []);
 
     useEffect(() => {
-        if (routeRoomId) {
-            const chatToSelect = chats.find((chat) => chat.roomId === routeRoomId);
-            if (chatToSelect) {
-                setSelectedChat(chatToSelect);
-            } else {
-                setSelectedChat(null);
-                console.error("Room not found");
-                navigate("/service/chat");
-                return;
-            }
-        } else if (chats.length > 0 && !selectedChat) {
-            setSelectedChat(chats[0]);
-        } else if (chats.length === 0) {
-            setSelectedChat(null);
-        }
-    }, [chats, routeRoomId, navigate, selectedChat]);
-
-    useEffect(() => {
         const fetchMessages = async () => {
-            if (selectedChat) {
+            if (routeRoomId && chats.length > 0) {
                 try {
                     setLoading(true);
-                    const token = localStorage.getItem("token");
-                    const response = await Api.get(`/chat/api/serviceman/messages/${selectedChat.roomId}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setMessages(response.data);
+                    const foundChat = chats.find((chat) => chat.roomId === routeRoomId);
+                    if (foundChat) {
+                        setSelectedChat(foundChat);
+                        const token = localStorage.getItem("token");
+                        const response = await Api.get(`/chat/api/serviceman/messages/${routeRoomId}`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+                        setMessages(response.data);
+                    } else {
+                        console.error("Room specified in URL not found for this serviceman.");
+                        setMessages([]);
+                        setSelectedChat(null);
+                        navigate("/service/chat");
+                    }
                 } catch (error) {
                     console.error("Error fetching messages:", error);
+                    setMessages([]);
+                    setSelectedChat(null);
+                    navigate("/service/chat");
                 } finally {
                     setLoading(false);
                 }
-            } else {
+            } else if (!routeRoomId) {
                 setMessages([]);
+                setSelectedChat(null);
             }
         };
         fetchMessages();
-    }, [selectedChat]);
+    }, [routeRoomId, chats, navigate]);
+
 
     const filteredChats = chats.filter(
         (chat) =>
@@ -138,7 +149,7 @@ export default function Chat() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await Api.post(
+            await Api.post(
                 `/chat/api/serviceman/send/${selectedChat.roomId}`,
                 {
                     message: newMessage,
@@ -149,10 +160,6 @@ export default function Chat() {
             );
 
             setNewMessage("");
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                response.data,
-            ]);
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -167,7 +174,7 @@ export default function Chat() {
     const selectedChatStyle = darkMode ? "bg-gray-700" : "bg-gray-100";
     const messageBgStyle = (sender) => (sender === "serviceman" ? "bg-blue-500 text-white" : darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900");
 
-    if (loading) {
+    if (loading && (!selectedChat || messages.length === 0)) {
         return <div className={`max-w-6xl mx-auto h-[calc(100vh-8rem)] flex justify-center items-center ${textStyle}`}>Loading chats...</div>;
     }
 
@@ -217,7 +224,6 @@ export default function Chat() {
                                 <div
                                     key={chat.roomId}
                                     onClick={() => {
-                                        setSelectedChat(chat);
                                         setShowSidebar(false);
                                         navigate(`/service/chat/${chat.roomId}`);
                                     }}

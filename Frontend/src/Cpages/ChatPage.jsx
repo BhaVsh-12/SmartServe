@@ -1,4 +1,3 @@
-// frontend/components/UserChat.js
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -9,14 +8,14 @@ import {
     MoreVertical,
     Smile,
     ArrowLeft,
-    MessageSquarePlus, // Added icon for creating new chat
+    MessageSquarePlus,
 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
-import { useNavigate, useParams } from "react-router-dom"; // Use useParams to get roomId
+import { useNavigate, useParams } from "react-router-dom";
 import Api from "../Api/capi";
 import { io } from "socket.io-client";
-
-export default function Chat() {
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+export default function UserChat() {
     const [chats, setChats] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
     const [newMessage, setNewMessage] = useState("");
@@ -26,33 +25,49 @@ export default function Chat() {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const socketRef = useRef(null);
+    const selectedChatRef = useRef(selectedChat); 
     const [loading, setLoading] = useState(false);
-    const { roomId } = useParams(); // Get roomId from the URL
+    const { roomId: routeRoomId } = useParams();
+
+ 
+    useEffect(() => {
+        selectedChatRef.current = selectedChat;
+    }, [selectedChat]);
 
     useEffect(() => {
         if (!socketRef.current) {
-            socketRef.current = io("https://smartserve-z2ms.onrender.com");
+            socketRef.current = io(API_BASE_URL);
         }
 
-        if (selectedChat) {
-            socketRef.current.emit("joinRoom", selectedChat.roomId);
-            console.log(`Socket re-joined room: ${selectedChat.roomId}`);
+        const socket = socketRef.current;
 
-            socketRef.current.on("receive_message", (message) => {
-                console.log("Received message:", message);
-                setMessages((prevMessages) => [...prevMessages, message]);
+      
+        socket.on("receive_message", (message) => {
+            console.log("Received message:", message);
+            setMessages((prevMessages) => {
+                const currentSelectedChat = selectedChatRef.current; 
+                if (currentSelectedChat && message.roomId === currentSelectedChat.roomId) {
+                    return [...prevMessages, message];
+                }
+                return prevMessages;
             });
-        }
+        });
 
         return () => {
-            if (socketRef.current) {
-                socketRef.current.off("receive_message");
-                if (selectedChat) {
-                    socketRef.current.emit("leaveRoom", selectedChat.roomId);
-                }
+            if (socket) {
+                socket.off("receive_message");
             }
         };
+    }, []);
+
+    useEffect(() => {
+        const socket = socketRef.current;
+        if (socket && selectedChat) {
+            socket.emit("joinRoom", selectedChat.roomId);
+            console.log(`Socket joined room: ${selectedChat.roomId}`);
+        }
     }, [selectedChat]);
+
 
     useEffect(() => {
         const fetchChats = async () => {
@@ -75,31 +90,38 @@ export default function Chat() {
 
     useEffect(() => {
         const fetchMessages = async () => {
-            if (roomId) {
+            if (routeRoomId && chats.length > 0) {
                 try {
                     setLoading(true);
-                    const token = localStorage.getItem("token");
-                    const response = await Api.get(`/chat/api/messages/${roomId}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setMessages(response.data);
-                    // Find and set the selected chat based on roomId
-                    const foundChat = chats.find((chat) => chat.roomId === roomId);
-                    setSelectedChat(foundChat || null);
+                    const foundChat = chats.find((chat) => chat.roomId === routeRoomId);
+                    if (foundChat) {
+                        setSelectedChat(foundChat);
+                        const token = localStorage.getItem("token");
+                        const response = await Api.get(`/chat/api/messages/${routeRoomId}`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+                        setMessages(response.data);
+                    } else {
+                        console.error("Room specified in URL not found for this user.");
+                        setMessages([]);
+                        setSelectedChat(null);
+                        navigate("/client/chat");
+                    }
                 } catch (error) {
                     console.error("Error fetching messages:", error);
                     setMessages([]);
-                    setSelectedChat(null); // Clear selected chat if room not found
+                    setSelectedChat(null);
+                    navigate("/client/chat");
                 } finally {
                     setLoading(false);
                 }
-            } else {
+            } else if (!routeRoomId) {
                 setMessages([]);
                 setSelectedChat(null);
             }
         };
         fetchMessages();
-    }, [roomId, chats]); // Added chats to dependency array to update selectedChat
+    }, [routeRoomId, chats, navigate]);
 
     const filteredChats = chats.filter((chat) =>
         chat.servicemanname.toLowerCase().includes(searchTerm.toLowerCase())
@@ -111,7 +133,7 @@ export default function Chat() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await Api.post(
+            await Api.post(
                 `/chat/api/send/${selectedChat.roomId}`,
                 {
                     message: newMessage,
@@ -123,9 +145,6 @@ export default function Chat() {
             );
 
             setNewMessage("");
-
-            // Add the sent message to the local messages state
-            setMessages((prevMessages) => [...prevMessages, response.data]); // response.data is now the message object
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -141,12 +160,12 @@ export default function Chat() {
     const selectedChatStyle = darkMode ? "bg-gray-700" : "bg-gray-100";
     const messageBgStyle = (sender) => (sender === "user" ? (darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-gray-900") : "bg-blue-500 text-white");
 
-    if (loading) {
-        return <div className="flex items-center justify-center h-full">Loading chats and messages...</div>; // More informative loading
+    if (loading && (!selectedChat || messages.length === 0)) {
+        return <div className="flex items-center justify-center h-full">Loading chats and messages...</div>;
     }
 
     const renderChatContent = () => {
-        if (!roomId) {
+        if (!routeRoomId) {
             return (
                 <div className="flex flex-col justify-center items-center h-full p-6">
                     <MessageSquarePlus className={`w-16 h-16 ${iconStyle} mb-4`} />
@@ -163,27 +182,13 @@ export default function Chat() {
             );
         }
 
-        if (!selectedChat && chats.length > 0) {
+        if (!selectedChat) {
             return (
                 <div className="flex flex-col justify-center items-center h-full p-6">
                     <h2 className={`text-xl font-semibold ${textStyle} mb-2`}>Loading Conversation...</h2>
                     <p className={`${mutedTextStyle} text-center mb-4`}>
                         Fetching messages for the selected chat. Please wait.
                     </p>
-                    {/* You can add a spinner here if you have one */}
-                </div>
-            );
-        }
-
-        if (!selectedChat && chats.length === 0 && !loading) {
-            return (
-                <div className="flex flex-col justify-center items-center h-full p-6">
-                    <MessageSquarePlus className={`w-16 h-16 ${iconStyle} mb-4`} />
-                    <h2 className={`text-xl font-semibold ${textStyle} mb-2`}>No conversations</h2>
-                    <p className={`${mutedTextStyle} text-center mb-4`}>
-                        It seems you don't have any conversations yet. Once a service is booked or you initiate a chat, it will appear here.
-                    </p>
-                    {/* Optionally, a button to browse services */}
                 </div>
             );
         }
@@ -302,7 +307,6 @@ export default function Chat() {
                             <div
                                 key={chat.roomId}
                                 onClick={() => {
-                                    setSelectedChat(chat);
                                     setShowSidebar(false);
                                     navigate(`/client/chat/${chat.roomId}`);
                                 }}

@@ -1,7 +1,7 @@
 const express = require("express");
 const User = require("../models/User");
-const Serviceman = require("../models/Serviceman"); // ✅ Import Serviceman model
-const protectRoute = require("../middleware/authMiddleware"); // ✅ Import auth middleware
+const Serviceman = require("../models/Serviceman"); 
+const protectRoute = require("../middleware/authMiddleware"); 
 const Request = require("../models/Request");
 const Review=require("../models/Review");
 const router = express.Router();

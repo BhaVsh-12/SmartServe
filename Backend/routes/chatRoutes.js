@@ -1,4 +1,3 @@
-// backend/routes/chatRoutes.js
 const express = require("express");
 const Chat = require("../models/Chat");
 const protectRoute = require("../middleware/authMiddleware");
@@ -6,7 +5,6 @@ const router = express.Router();
 const User = require("../models/User");
 const Serviceman = require("../models/Serviceman");
 
-// 📩 Send a chat message (Client)
 router.post("/send/:roomId", protectRoute("client"), async (req, res) => {
     try {
         const roomId = req.params.roomId;
@@ -46,7 +44,6 @@ router.post("/send/:roomId", protectRoute("client"), async (req, res) => {
     }
 });
 
-// Get all rooms for a client
 router.get("/getrooms", protectRoute("client"), async (req, res) => {
     try {
         const userId = req.user.id;
@@ -57,6 +54,7 @@ router.get("/getrooms", protectRoute("client"), async (req, res) => {
                 roomId: room.roomId,
                 servicemanname: room.servicemanname,
                 servicemanPhoto: room.servicemanPhoto,
+                servicemanId: room.servicemanId, // Include servicemanId for client chat component
             }));
             res.json(formattedRooms);
         } else {
@@ -68,7 +66,6 @@ router.get("/getrooms", protectRoute("client"), async (req, res) => {
     }
 });
 
-// Fetch all messages for a chat room (Client)
 router.get("/messages/:roomId", protectRoute("client"), async (req, res) => {
     try {
         const { roomId } = req.params;
@@ -84,7 +81,6 @@ router.get("/messages/:roomId", protectRoute("client"), async (req, res) => {
     }
 });
 
-// Create a room if it does not exist. (Client)
 router.post("/createRoom", protectRoute("client"), async (req, res) => {
     try {
         const { servicemanId } = req.body;
@@ -123,9 +119,6 @@ router.post("/createRoom", protectRoute("client"), async (req, res) => {
     }
 });
 
-// Serviceman routes
-
-// Serviceman fetch messages
 router.get("/serviceman/messages/:roomId", protectRoute("serviceman"), async (req, res) => {
     try {
         const { roomId } = req.params;
@@ -141,7 +134,6 @@ router.get("/serviceman/messages/:roomId", protectRoute("serviceman"), async (re
     }
 });
 
-// Serviceman send message
 router.post("/serviceman/send/:roomId", protectRoute("serviceman"), async (req, res) => {
     try {
         const { roomId } = req.params;
@@ -167,7 +159,6 @@ router.post("/serviceman/send/:roomId", protectRoute("serviceman"), async (req, 
     }
 });
 
-// Get all rooms for a serviceman
 router.get("/serviceman/getrooms", protectRoute("serviceman"), async (req, res) => {
     try {
         const servicemanId = req.user.id;

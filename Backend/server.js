@@ -1,12 +1,12 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const http = require("http");
 const { Server } = require("socket.io");
 
 const { connectRedis } = require("./config/redis");
+// Import your database connections to ensure they are initiated
+const { userDB, servicemanDB, requestDB, reviewDB, chatDB } = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const sauthRoutes = require("./routes/sauthRoutes");
@@ -48,15 +48,39 @@ app.use((req, res, next) => {
   next();
 });
 
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  socket.on("joinRoom", (roomId) => {
+    socket.rooms.forEach(room => {
+      if (room !== socket.id) {
+        socket.leave(room);
+        console.log(`Socket ${socket.id} left room: ${room}`);
+      }
+    });
+    socket.join(roomId);
+    console.log(`Socket ${socket.id} joined room: ${roomId}`);
+  });
+
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId);
+    console.log(`Socket ${socket.id} left room: ${roomId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
 const startServer = async () => {
   try {
-    await connectRedis();
+    // This line is removed as connections are handled by dbConnections.js
+    // await mongoose.connect(process.env.MONGO_URI); // REMOVED
 
-    // ✅ Load rate limiter after Redis is connected
+    await connectRedis(); // Ensure Redis connection is handled
     const rateLimiter = require("./middleware/rateLimiter");
-    app.use(rateLimiter); // global middleware
+    app.use(rateLimiter);
 
-    // Routes
     app.use("/user/api/auth", authRoutes);
     app.get("/user/api/protected", protectRoute("client"), (req, res) => {
       res.json({ message: "Access granted to client protected data" });
@@ -89,5 +113,4 @@ const startServer = async () => {
     console.error("❌ Failed to start server:", err);
   }
 };
-
 startServer();
