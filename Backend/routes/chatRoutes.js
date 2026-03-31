@@ -19,22 +19,28 @@ router.post("/send/:roomId", protectRoute("client"), async (req, res) => {
             chat.messages.push(newMsg);
             await chat.save();
             
-            const messageWithRoom = { ...newMsg, roomId };
+            const savedMsg = chat.messages[chat.messages.length - 1];
+            const messageWithRoom = { sender: savedMsg.sender, message: savedMsg.message, timestamp: savedMsg.timestamp, roomId };
             req.io.to(roomId).emit("receive_message", messageWithRoom);
             res.status(201).json(messageWithRoom);
         } else {
+            const client = await User.findById(userId).select("fullName profilePhoto");
+            const serviceman = await Serviceman.findById(servicemanId).select("fullName profilePhoto");
+
             const newChat = new Chat({
                 roomId,
                 userId,
                 servicemanId,
+                username: client?.fullName || "",
+                userPhoto: client?.profilePhoto || undefined,
+                servicemanname: serviceman?.fullName || "",
+                servicemanPhoto: serviceman?.profilePhoto || undefined,
                 messages: [{ sender, message, timestamp: new Date() }],
             });
 
             await newChat.save();
-            const messageWithRoom = { 
-                ...newChat.messages[0], 
-                roomId 
-            };
+            const savedMsg = newChat.messages[0];
+            const messageWithRoom = { sender: savedMsg.sender, message: savedMsg.message, timestamp: savedMsg.timestamp, roomId };
             req.io.to(roomId).emit("receive_message", messageWithRoom);
             res.status(201).json(messageWithRoom);
         }
@@ -48,18 +54,13 @@ router.get("/getrooms", protectRoute("client"), async (req, res) => {
     try {
         const userId = req.user.id;
         const chatRooms = await Chat.find({ userId });
-
-        if (chatRooms.length > 0) {
-            const formattedRooms = chatRooms.map((room) => ({
-                roomId: room.roomId,
-                servicemanname: room.servicemanname,
-                servicemanPhoto: room.servicemanPhoto,
-                servicemanId: room.servicemanId, // Include servicemanId for client chat component
-            }));
-            res.json(formattedRooms);
-        } else {
-            res.status(404).json({ message: "No rooms found" });
-        }
+        const formattedRooms = chatRooms.map((room) => ({
+            roomId: room.roomId,
+            servicemanname: room.servicemanname,
+            servicemanPhoto: room.servicemanPhoto,
+            servicemanId: room.servicemanId,
+        }));
+        res.json(formattedRooms);
     } catch (error) {
         console.error("Error fetching rooms:", error);
         res.status(500).json({ message: "Failed to fetch rooms" });
@@ -147,7 +148,8 @@ router.post("/serviceman/send/:roomId", protectRoute("serviceman"), async (req, 
             chat.messages.push(newMsg);
             await chat.save();
             
-            const messageWithRoom = { ...newMsg, roomId };
+            const savedMsg = chat.messages[chat.messages.length - 1];
+            const messageWithRoom = { sender: savedMsg.sender, message: savedMsg.message, timestamp: savedMsg.timestamp, roomId };
             req.io.to(roomId).emit("receive_message", messageWithRoom);
             res.status(201).json(messageWithRoom);
         } else {
@@ -162,18 +164,15 @@ router.post("/serviceman/send/:roomId", protectRoute("serviceman"), async (req, 
 router.get("/serviceman/getrooms", protectRoute("serviceman"), async (req, res) => {
     try {
         const servicemanId = req.user.id;
+        console.log("Fetching rooms for servicemanId:", servicemanId);
         const chatRooms = await Chat.find({ servicemanId });
-
-        if (chatRooms.length > 0) {
-            const formattedRooms = chatRooms.map((room) => ({
-                roomId: room.roomId,
-                clientname: room.username,
-                clientPhoto: room.userPhoto,
-            }));
-            res.json(formattedRooms);
-        } else {
-            res.status(404).json({ message: "No rooms found" });
-        }
+        console.log("Found rooms:", chatRooms.length);
+        const formattedRooms = chatRooms.map((room) => ({
+            roomId: room.roomId,
+            clientname: room.username,
+            clientPhoto: room.userPhoto,
+        }));
+        res.json(formattedRooms);
     } catch (error) {
         console.error("Error fetching rooms:", error);
         res.status(500).json({ message: "Failed to fetch rooms" });
