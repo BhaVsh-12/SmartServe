@@ -57,8 +57,10 @@ export default function ServicemanChat() {
         socket.on("receive_message", (message) => {
             console.log("Received message:", message);
             setMessages((prevMessages) => {
-                const currentSelectedChat = selectedChatRef.current; 
+                const currentSelectedChat = selectedChatRef.current;
                 if (currentSelectedChat && message.roomId === currentSelectedChat.roomId) {
+                    // skip if it's from self (already added optimistically)
+                    if (message.sender === "serviceman") return prevMessages;
                     return [...prevMessages, message];
                 }
                 return prevMessages;
@@ -138,30 +140,30 @@ export default function ServicemanChat() {
 
     const filteredChats = chats.filter(
         (chat) =>
-            chat.clientname &&
-            typeof chat.clientname === "string" &&
-            chat.clientname.toLowerCase().includes(searchTerm.toLowerCase())
+            !searchTerm ||
+            (chat.clientname &&
+                typeof chat.clientname === "string" &&
+                chat.clientname.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedChat) return;
 
+        const optimisticMsg = { sender: "serviceman", message: newMessage, timestamp: new Date() };
+        setMessages((prev) => [...prev, optimisticMsg]);
+        setNewMessage("");
+
         try {
             const token = localStorage.getItem("token");
             await Api.post(
                 `/chat/api/serviceman/send/${selectedChat.roomId}`,
-                {
-                    message: newMessage,
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
+                { message: optimisticMsg.message },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            setNewMessage("");
         } catch (error) {
             console.error("Error sending message:", error);
+            setMessages((prev) => prev.filter((m) => m !== optimisticMsg));
         }
     };
     const chatContainerClass = `${darkMode ? "bg-gray-800" : "bg-white"} rounded-2xl shadow-lg h-full flex overflow-hidden`;

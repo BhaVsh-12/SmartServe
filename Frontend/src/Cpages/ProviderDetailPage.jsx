@@ -111,9 +111,8 @@ const ProviderDetailPage = () => {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-
-            console.log("Chat Room Response:", response.data);
-            navigate(`/client/chat`);
+            const { roomId } = response.data;
+            navigate(`/client/chat/${roomId}`);
         } catch (err) {
             console.error("Error creating chat room:", err);
             setError("Failed to create chat room.");
@@ -232,7 +231,7 @@ const ProviderDetailPage = () => {
                                                 <div className="flex items-center">
                                                     <StarRating rating={review.rating} size={16} />
                                                     <span className={`ml-2 text-sm ${darkMode? "text-gray-400" : "text-gray-500"}`}>
-                                                        {new Date(review.updatedAt).toLocaleDateString()}
+                                                        {new Date(review.updatedAt).toLocaleString()}
                                                     </span>
                                                 </div>
                                             </div>
