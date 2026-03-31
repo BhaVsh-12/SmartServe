@@ -110,7 +110,7 @@ const PaymentHistory = () => {
       const matchesSearch =
         payment.clientname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         payment.amount.toString().includes(searchTerm) ||
-        format(payment.date, 'MMM dd, yyyy').toLowerCase().includes(searchTerm.toLowerCase());
+        format(payment.date, 'MMM dd, yyyy h:mm a').toLowerCase().includes(searchTerm.toLowerCase());
       return matchesFilter && matchesSearch;
     })
     .sort((a, b) => {
@@ -317,7 +317,7 @@ const PaymentHistory = () => {
                       </div>
                       <div className="sm:col-span-2 mb-2 sm:mb-0">
                         <div className={`text-sm ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                          {format(payment.date, 'MMM dd, yyyy')}
+                          {format(payment.date, 'MMM dd, yyyy h:mm a')}
                         </div>
                         <div className={`text-sm ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                           {format(payment.date, 'hh:mm a')}

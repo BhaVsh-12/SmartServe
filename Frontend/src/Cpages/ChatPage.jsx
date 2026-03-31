@@ -45,8 +45,10 @@ export default function UserChat() {
         socket.on("receive_message", (message) => {
             console.log("Received message:", message);
             setMessages((prevMessages) => {
-                const currentSelectedChat = selectedChatRef.current; 
+                const currentSelectedChat = selectedChatRef.current;
                 if (currentSelectedChat && message.roomId === currentSelectedChat.roomId) {
+                    // skip if it's from self (already added optimistically)
+                    if (message.sender === "user") return prevMessages;
                     return [...prevMessages, message];
                 }
                 return prevMessages;
@@ -131,22 +133,25 @@ export default function UserChat() {
         e.preventDefault();
         if (!newMessage.trim() || !selectedChat) return;
 
+        const optimisticMsg = { sender: "user", message: newMessage, timestamp: new Date() };
+        setMessages((prev) => [...prev, optimisticMsg]);
+        setNewMessage("");
+
         try {
             const token = localStorage.getItem("token");
             await Api.post(
                 `/chat/api/send/${selectedChat.roomId}`,
                 {
-                    message: newMessage,
+                    message: optimisticMsg.message,
                     servicemanId: selectedChat.servicemanId,
                 },
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-
-            setNewMessage("");
         } catch (error) {
             console.error("Error sending message:", error);
+            setMessages((prev) => prev.filter((m) => m !== optimisticMsg));
         }
     };
 

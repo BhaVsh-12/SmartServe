@@ -256,7 +256,7 @@ export default function Requests() {
                                         <p className="font-semibold">{request.price} ₹</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                                             <Clock size={16} />
-                                            {new Date(request.createdAt).toLocaleDateString()}
+                                            {new Date(request.createdAt).toLocaleString()}
                                         </p>
                                     </div>
                                 </div>

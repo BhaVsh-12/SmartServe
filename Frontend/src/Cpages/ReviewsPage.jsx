@@ -179,7 +179,7 @@ const ReviewsPage = () => {
                         {item.service} by {item.serviceman}
                       </h3>
                       <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        Completed on {new Date(item.createdAt).toLocaleDateString()}
+                        Completed on {new Date(item.createdAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ const ReviewsPage = () => {
                         {review.service} by {review.serviceman}
                       </h3>
                       <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        Reviewed on {new Date(review.createdAt).toLocaleDateString()}
+                        Reviewed on {new Date(review.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <StarRating rating={review.rating} />

@@ -192,7 +192,7 @@ export default function Reviews() {
                                         <StarRating rating={review.rating} />
                                     </div>
                                     <span className={`text-sm text-gray-600 ${themeClass === 'dark' ? 'dark:text-gray-400' : ''}`}>
-                                        {new Date(review.createdAt).toLocaleDateString()}
+                                        {new Date(review.createdAt).toLocaleString()}
                                     </span>
                                 </div>
                                 <p className={`mt-2 ${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{review.review}</p>

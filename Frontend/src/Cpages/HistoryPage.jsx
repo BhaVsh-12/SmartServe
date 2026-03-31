@@ -236,7 +236,7 @@ const HistoryPage = () => {
                                                 {getStatusIcon(item.userstatus)}
                                                 <span className="ml-1">{item.userstatus}</span>
                                             </span>
-                                            <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                            <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{new Date(item.createdAt).toLocaleString()}</span>
                                         </div>
 
                                         <h3 className={`text-lg font-semibold mb-1 ${darkMode ? "text-white" : "text-gray-800"}`}>{item.service}</h3>
