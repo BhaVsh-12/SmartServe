@@ -1,9 +1,16 @@
 const express = require("express");
 const User = require("../models/User");
-const Serviceman = require("../models/Serviceman"); // ✅ Import Serviceman model
-const protectRoute = require("../middleware/authMiddleware"); // ✅ Import auth middleware
+const Serviceman = require("../models/Serviceman");
+const protectRoute = require("../middleware/authMiddleware");
 const router = express.Router();
 const Request = require("../models/Request");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 router.post("/create", protectRoute("client"), async (req, res) => {
   try {
@@ -53,7 +60,7 @@ router.post("/accept",protectRoute("serviceman"),async(req,res)=>{
         }
         request.userstatus="pursuing";
         request.servicestatus="accepted";
-        request.paid="unpaid";
+        request.paid="";
         await request.save();
         res.status(200).json({message:"Request Acccepted succesfully"});
 
@@ -88,6 +95,7 @@ router.post("/complete",protectRoute("serviceman"),async(req,res)=>{
         }
         request.userstatus="completed";
         request.servicestatus="completed";
+        request.paid="unpaid";
         await request.save();
         res.status(200).json({message:"Request completed succesfully"});
 
@@ -212,4 +220,55 @@ router.get("/getpayments", protectRoute("serviceman"), async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
+// Create Razorpay order
+router.post("/create-order", protectRoute("client"), async (req, res) => {
+  try {
+    const { requestId } = req.body;
+    const request = await Request.findById(requestId);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (request.paid === "paid") return res.status(400).json({ message: "Payment already completed" });
+
+    const order = await razorpay.orders.create({
+      amount: Math.round(request.price * 100), // paise
+      currency: "INR",
+      receipt: `receipt_${requestId}`,
+    });
+
+    res.status(200).json({ orderId: order.id, amount: order.amount, currency: order.currency });
+  } catch (error) {
+    console.error("Razorpay order creation error:", error);
+    res.status(500).json({ message: "Failed to create payment order" });
+  }
+});
+
+// Verify Razorpay payment and mark as paid
+router.post("/verify-payment", protectRoute("client"), async (req, res) => {
+  try {
+    const { requestId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      console.error("Signature mismatch:", { expected: expectedSignature, received: razorpay_signature });
+      return res.status(400).json({ message: "Payment verification failed" });
+    }
+
+    const request = await Request.findById(requestId);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    request.paid = "paid";
+    request.paymentmethod = "Razorpay";
+    request.paymentAt = new Date();
+    await request.save();
+
+    res.status(200).json({ message: "Payment Successful" });
+  } catch (error) {
+    console.error("Payment verification error:", error.message, error);
+    res.status(500).json({ message: "Internal Server Error", detail: error.message });
+  }
+});
+
 module.exports = router;

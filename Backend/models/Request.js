@@ -9,7 +9,7 @@ const requestSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   price: { type: Number, default: 0 },
   paid: { type: String, default: "", enum: ["paid", "unpaid",""] },
-  paymentmethod: { type: String, default: "Card", enum: ["Card", "UPI"] },
+  paymentmethod: { type: String, default: "", enum: ["Card", "UPI", "Razorpay", ""] },
   upiid:{type:String,default:""},
   cardno:{type:String,default:"0"},
   userstatus: { type: String, enum: ["pending", "completed", "declined", "pursuing"], default: "pending" },
