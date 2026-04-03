@@ -19,14 +19,14 @@ export default function Profile() {
   }, [theme]);
 
   const categories = {
-    'Home Services': ['Plumbing', 'Cleaning', 'Painting'],
+    'Home Services': ['Plumbing', 'Cleaning', 'Painting','Electrician','Carpentry',],
     'Tech Services': ['IT-Support', 'Software-Development', 'Networking'],
     'Health & Wellness': ['Fitness-Training', 'Mental-Health-Counseling', 'Physiotherapy'],
     'Business & Finance Services': ['Accounting', 'Tax-Preparation', 'Business-Strategy'],
     'Beauty & Personal Care': ['Hair-Styling', 'Makeup', 'Spa=Treatments'],
-    'Event & Entertainment Services': ['Photography', 'Catering', 'Wedding-Planning'],
+    'Event & Entertainment Services': ['Photography', 'Catering', 'Wedding-Planning', 'Event-Decoration'],
     'Education & Coaching': ['Tutoring', 'Public-Speaking-Coaching', 'Skill-Development'],
-    'Automobile Services': ['Car-Repair', 'Oil-Change', 'Battery-Service'],
+    'Automobile Services': ['Car-Repair', 'Bike-Service'],
   };
 
   useEffect(() => {

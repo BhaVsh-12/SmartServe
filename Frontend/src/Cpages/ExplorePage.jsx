@@ -10,8 +10,36 @@ const serviceTypes = [
         icon: "Home",
         services: [
             { icon: "Wrench", title: "Plumbing", description: "Reliable plumbing services for repairs and installations.", providerCount: 15 },
-            { icon: "Broom", title: "Cleaning", description: "Professional cleaning services for your home.", providerCount: 22 },
-            { icon: "PaintBrush", title: "Painting", description: "High-quality painting services for homes and offices.", providerCount: 10 },
+            { 
+    icon: "Paintbrush", 
+    title: "Painting", 
+    description: "High-quality painting services for homes and offices.", 
+    providerCount: 10 
+  },
+  { 
+    icon: "Sparkles", 
+    title: "Cleaning", 
+    description: "Professional cleaning services for homes, offices, and deep sanitation.", 
+    providerCount: 12 
+  },
+             { 
+    icon: "Zap", 
+    title: "Electrician", 
+    description: "Professional electrical services for installation, repair, and maintenance.", 
+    providerCount: 8 
+  },
+   { 
+    icon: "Shield", 
+    title: "Security Guard", 
+    description: "Trained security personnel for residential, commercial, and event safety.", 
+    providerCount: 6 
+  },
+  { 
+    icon: "Leaf", 
+    title: "Gardener", 
+    description: "Expert gardening services for lawn care, landscaping, and plant maintenance.", 
+    providerCount: 7 
+  },
         ],
     },
     {
@@ -21,6 +49,12 @@ const serviceTypes = [
             { icon: "Server", title: "IT Support", description: "Comprehensive IT support for businesses and individuals.", providerCount: 8 },
             { icon: "Code", title: "Software Development", description: "Custom software solutions for your needs.", providerCount: 12 },
             { icon: "Wifi", title: "Networking", description: "Reliable networking solutions for homes and offices.", providerCount: 5 },
+              { 
+    icon: "Camera", 
+    title: "CCTV Security", 
+    description: "Reliable CCTV installation and monitoring services for enhanced security.", 
+    providerCount: 5 
+  },
         ],
     },
     {
@@ -57,6 +91,12 @@ const serviceTypes = [
             { icon: "Camera", title: "Photography", description: "Professional photography and videography services.", providerCount: 17 },
             { icon: "Utensils", title: "Catering", description: "Delicious catering for all events.", providerCount: 19 },
             { icon: "Gem", title: "Wedding Planning", description: "Expert planning for your special day.", providerCount: 21 },
+              { 
+    icon: "PartyPopper", 
+    title: "Event Decorator", 
+    description: "Creative decoration services for weddings, parties, and corporate events.", 
+    providerCount: 9 
+  },
         ],
     },
     {
@@ -73,8 +113,12 @@ const serviceTypes = [
         icon: "Car",
         services: [
             { icon: "Wrench", title: "Car Repair", description: "Expert car repair and maintenance services.", providerCount: 22 },
-            { icon: "Oil", title: "Oil Change", description: "Regular oil change for your vehicle’s best performance.", providerCount: 12 },
-            { icon: "BatteryCharging", title: "Battery Service", description: "Battery replacement and charging services.", providerCount: 9 },
+            { 
+    icon: "Bike", 
+    title: "Bike Service", 
+    description: "Comprehensive bike servicing, repair, and maintenance by skilled mechanics.", 
+    providerCount: 6 
+  },
         ],
     },
 ];

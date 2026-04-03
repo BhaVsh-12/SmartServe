@@ -9,9 +9,9 @@ const Team = () => {
       image:
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
       social: {
-        linkedin: "https://www.linkedin.com/in/bhavesh-bari",
+        linkedin: "#",
         twitter: "#",
-        email: "bhaveshbari0402@gmail.com",
+        email: "#",
       },
     },
     {
@@ -20,9 +20,9 @@ const Team = () => {
       image:
         "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
       social: {
-        linkedin: "https://www.linkedin.com/in/bhavesh-bari",
+        linkedin: "#",
         twitter: "#",
-        email: "bhaveshbari0402@gmail.com",
+        email: "#",
       },
     },
     {
@@ -31,9 +31,9 @@ const Team = () => {
       image:
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
       social: {
-        linkedin: "https://www.linkedin.com/in/bhavesh-bari",
+        linkedin: "#",
         twitter: "#",
-        email: "bhaveshbari0402@gmail.com",
+        email: "#",
       },
     },
     {
@@ -42,9 +42,9 @@ const Team = () => {
       image:
         "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
       social: {
-        linkedin: "https://www.linkedin.com/in/bhavesh-bari",
+        linkedin: "#",
         twitter: "#",
-        email: "bhaveshbari0402@gmail.com",
+        email: "#",
       },
     },
   ];
